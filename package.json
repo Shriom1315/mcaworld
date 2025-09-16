@@ -1,6 +1,11 @@
 {
-  "name": "kahoot-clone",
-  "version": "0.1.0",
+  "name": "quiz-competition-platform",
+  "version": "1.0.0",
+  "description": "A modern, real-time quiz competition platform with animated leaderboards and live player tracking",
+  "main": "next.config.js",
+  "keywords": ["quiz", "education", "real-time", "nextjs", "firebase", "multiplayer", "leaderboard", "animations"],
+  "author": "Quiz Competition Team",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "dev": "next dev",
