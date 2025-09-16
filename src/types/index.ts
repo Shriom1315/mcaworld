@@ -79,58 +79,6 @@ export interface PlayerAnswer {
   points: number;
 }
 
-// Socket Events
-export interface SocketEvents {
-  // Host events
-  'game:start': (gamePin: string) => void;
-  'game:next-question': (gamePin: string) => void;
-  'game:end': (gamePin: string) => void;
-  
-  // Player events
-  'player:join': (data: { gamePin: string; nickname: string }) => void;
-  'player:answer': (data: { gamePin: string; playerId: string; answerId: string[]; timeToAnswer: number }) => void;
-  
-  // Broadcast events
-  'game:player-joined': (player: Player) => void;
-  'game:question-started': (question: Question, timeLimit: number) => void;
-  'game:question-ended': (results: QuestionResults) => void;
-  'game:finished': (finalResults: GameResults) => void;
-}
-
-export interface QuestionResults {
-  questionId: string;
-  correctAnswerIds: string[];
-  playerAnswers: Array<{
-    playerId: string;
-    nickname: string;
-    answerId: string[];
-    isCorrect: boolean;
-    points: number;
-    timeToAnswer: number;
-  }>;
-  leaderboard: Array<{
-    playerId: string;
-    nickname: string;
-    totalScore: number;
-    rank: number;
-  }>;
-}
-
-export interface GameResults {
-  gameId: string;
-  quiz: Quiz;
-  totalPlayers: number;
-  totalQuestions: number;
-  leaderboard: Array<{
-    playerId: string;
-    nickname: string;
-    totalScore: number;
-    correctAnswers: number;
-    rank: number;
-  }>;
-  questionResults: QuestionResults[];
-}
-
 // API Response Types
 export interface ApiResponse<T> {
   success: boolean;

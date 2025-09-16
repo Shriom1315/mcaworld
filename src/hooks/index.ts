@@ -1,33 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { io, Socket } from 'socket.io-client'
-import { SocketEvents } from '@/types'
-
-export function useSocket() {
-  const [socket, setSocket] = useState<Socket | null>(null)
-  const [isConnected, setIsConnected] = useState(false)
-
-  useEffect(() => {
-    const socketInstance = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001')
-
-    socketInstance.on('connect', () => {
-      setIsConnected(true)
-    })
-
-    socketInstance.on('disconnect', () => {
-      setIsConnected(false)
-    })
-
-    setSocket(socketInstance)
-
-    return () => {
-      socketInstance.disconnect()
-    }
-  }, [])
-
-  return { socket, isConnected }
-}
 
 export function useLocalStorage<T>(key: string, initialValue: T) {
   const [storedValue, setStoredValue] = useState<T>(() => {
