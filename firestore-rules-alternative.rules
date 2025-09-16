@@ -1,0 +1,32 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read access to games for anyone (to find games by PIN)
+    match /games/{gameId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Allow read/write access to game sessions for anyone (for players joining)
+    match /game_sessions/{sessionId} {
+      allow read, write: if true;
+    }
+    
+    // Allow read access to quizzes for anyone (to display quiz content)
+    match /quizzes/{quizId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Require authentication for user profiles and other sensitive data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // All other documents require authentication
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input'
 import { ArrowLeft, Users, Gamepad2 } from 'lucide-react'
 import Link from 'next/link'
 import { collection, doc, getDoc, getDocs, updateDoc, addDoc, query, where, Timestamp } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { signInAnonymously } from 'firebase/auth'
+import { auth, db } from '@/lib/firebase'
 import { COLLECTIONS } from '@/types/firebase'
 
 export default function JoinGamePage() {
@@ -17,6 +18,7 @@ export default function JoinGamePage() {
   const [step, setStep] = useState<'pin' | 'nickname' | 'waiting'>('pin')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [isAuthenticating, setIsAuthenticating] = useState(true)
   const router = useRouter()
 
   // Clear any previous session data on component mount
@@ -27,12 +29,45 @@ export default function JoinGamePage() {
       localStorage.removeItem('kahoot_player_id')
       localStorage.removeItem('kahoot_nickname')
     }
+    
+    // Sign in anonymously for quiz participation
+    const signInAnonymousUser = async () => {
+      try {
+        if (!auth.currentUser) {
+          await signInAnonymously(auth)
+          console.log('Signed in anonymously for quiz participation')
+        }
+      } catch (error) {
+        console.error('Error signing in anonymously:', error)
+      } finally {
+        setIsAuthenticating(false)
+      }
+    }
+    
+    // Check if user is already signed in
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        console.log('User is authenticated:', user.uid)
+        setIsAuthenticating(false)
+      } else {
+        signInAnonymousUser()
+      }
+    })
+    
+    return () => unsubscribe()
   }, [])
 
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setIsLoading(true)
+
+    // Check if user is authenticated before proceeding
+    if (!auth.currentUser) {
+      setError('Authentication required. Please wait and try again.')
+      setIsLoading(false)
+      return
+    }
 
     // Validate PIN format
     if (!/^\d{6}$/.test(gamePin)) {
@@ -69,7 +104,7 @@ export default function JoinGamePage() {
       
       let errorMessage = 'Failed to connect to game. Please try again.'
       if (error.code === 'permission-denied') {
-        errorMessage = 'Please deploy Firebase security rules first.'
+        errorMessage = 'Authentication error. Please refresh the page and try again.'
       }
       
       setError(errorMessage)
@@ -82,6 +117,21 @@ export default function JoinGamePage() {
     e.preventDefault()
     setError('')
     setIsLoading(true)
+
+    // Check if user is authenticated before proceeding
+    if (!auth.currentUser) {
+      console.error('No authenticated user found when trying to join game')
+      setError('Authentication required. Please refresh the page and try again.')
+      setIsLoading(false)
+      return
+    }
+
+    console.log('User authenticated, proceeding with game join:', {
+      userId: auth.currentUser.uid,
+      isAnonymous: auth.currentUser.isAnonymous,
+      nickname: nickname.trim(),
+      gamePin: gamePin
+    })
 
     if (nickname.trim().length < 2) {
       setError('Nickname must be at least 2 characters')
@@ -148,7 +198,8 @@ export default function JoinGamePage() {
         sessionId: sessionDoc.id,
         gameId: game.id,
         playerId: playerId,
-        nickname: nickname.trim()
+        nickname: nickname.trim(),
+        userId: auth.currentUser?.uid
       })
 
       setStep('waiting')
@@ -160,10 +211,20 @@ export default function JoinGamePage() {
       
     } catch (error: any) {
       console.error('Error joining game:', error)
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        userId: auth.currentUser?.uid,
+        isAuthenticated: !!auth.currentUser
+      })
       
       let errorMessage = 'Failed to join game. Please try again.'
       if (error.code === 'permission-denied') {
-        errorMessage = 'Please deploy Firebase security rules first.'
+        errorMessage = 'Firebase permission denied. Please check if anonymous authentication is enabled in Firebase Console.'
+      } else if (error.code === 'unavailable') {
+        errorMessage = 'Firebase service unavailable. Please check your internet connection.'
+      } else if (error.code === 'unauthenticated') {
+        errorMessage = 'Authentication error. Please refresh the page and try again.'
       }
       
       setError(errorMessage)
@@ -188,6 +249,14 @@ export default function JoinGamePage() {
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Join a Kahoot!</h1>
           </div>
+
+          {isAuthenticating ? (
+            <div className="text-center space-y-4">
+              <div className="w-12 h-12 border-4 border-kahoot-purple border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <p className="text-gray-600">Setting up your session...</p>
+            </div>
+          ) : (
+            <>
 
           {step === 'pin' && (
             <form onSubmit={handlePinSubmit} className="space-y-6">
@@ -329,6 +398,8 @@ export default function JoinGamePage() {
                 </p>
               </div>
             </div>
+          )}
+          </>
           )}
         </div>
 

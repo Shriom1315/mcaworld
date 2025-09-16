@@ -14,6 +14,16 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 }
 
+// Validate Firebase configuration
+if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+  console.error('Firebase configuration is missing. Please check your environment variables.')
+  console.error('Missing variables:', {
+    apiKey: !firebaseConfig.apiKey,
+    projectId: !firebaseConfig.projectId,
+    authDomain: !firebaseConfig.authDomain
+  })
+}
+
 // Initialize Firebase
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
 
