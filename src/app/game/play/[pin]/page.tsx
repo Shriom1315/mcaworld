@@ -10,6 +10,13 @@ import { COLLECTIONS } from '@/types/firebase'
 import Avatar from '@/components/avatar/Avatar'
 import AnimatedLeaderboard from '@/components/game/AnimatedLeaderboard'
 
+// Generate static params for dynamic routes
+export async function generateStaticParams() {
+  // For dynamic game PINs, we return an empty array
+  // This tells Next.js to handle these routes dynamically
+  return []
+}
+
 export default function PlayerGamePage() {
   const searchParams = useSearchParams()
   const params = useParams()

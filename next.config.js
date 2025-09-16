@@ -9,7 +9,9 @@ const nextConfig = {
   },
   typescript: {
     ignoreBuildErrors: false
-  }
+  },
+  // Disable static export for dynamic routes with Firebase real-time features
+  output: undefined
 }
 
 module.exports = nextConfig

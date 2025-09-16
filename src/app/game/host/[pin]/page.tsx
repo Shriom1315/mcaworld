@@ -13,6 +13,13 @@ import AnimatedLeaderboard from '@/components/game/AnimatedLeaderboard'
 import ResultsScreen from '@/components/game/ResultsScreen'
 import PlayerStatus from '@/components/game/PlayerStatus'
 
+// Generate static params for dynamic routes
+export async function generateStaticParams() {
+  // For dynamic game PINs, we return an empty array
+  // This tells Next.js to handle these routes dynamically
+  return []
+}
+
 // Mock data - only for fallback when no real quiz data
 const mockQuiz = {
   title: 'Loading Quiz...',
