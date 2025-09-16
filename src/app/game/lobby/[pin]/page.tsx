@@ -10,12 +10,7 @@ import { COLLECTIONS } from '@/types/firebase'
 import AvatarSelector, { avatarOptions } from '@/components/avatar/AvatarSelector'
 import Avatar from '@/components/avatar/Avatar'
 
-// Generate static params for dynamic routes
-export async function generateStaticParams() {
-  // For dynamic game PINs, we return an empty array
-  // This tells Next.js to handle these routes dynamically
-  return []
-}
+
 
 // Accessory options (keeping the emoji accessories for fun)
 const accessoryOptions = [
