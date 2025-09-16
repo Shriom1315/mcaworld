@@ -2,17 +2,13 @@
 const nextConfig = {
   images: {
     domains: ['localhost', 'firebasestorage.googleapis.com'],
-    unoptimized: true // For better Netlify compatibility
+    unoptimized: true
   },
-  trailingSlash: true,
   eslint: {
-    ignoreDuringBuilds: true // Ignore ESLint errors during build
+    ignoreDuringBuilds: true
   },
   typescript: {
     ignoreBuildErrors: false
-  },
-  experimental: {
-    esmExternals: true
   }
 }
 
