@@ -286,7 +286,7 @@ export default function CreateQuizPage() {
                     <Plus className="w-12 h-12 text-gray-400" />
                   </div>
                   <h2 className="text-xl font-semibold text-gray-900 mb-2">Add your first question</h2>
-                  <p className="text-gray-600 mb-6">Create engaging questions to test your students' knowledge</p>
+                  <p className="text-gray-600 mb-6">Create engaging questions to test your students&apos; knowledge</p>
                   <Button onClick={addQuestion}>
                     <Plus className="w-4 h-4 mr-2" />
                     Add question

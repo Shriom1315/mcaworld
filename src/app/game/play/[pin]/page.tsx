@@ -198,7 +198,7 @@ export default function PlayerGamePage() {
       }, 4000)
       return () => clearTimeout(timer)
     }
-  }, [gamePhase, isLastQuestion, currentQuestionIndex])
+  }, [gamePhase, isLastQuestion, currentQuestionIndex, quiz?.questions])
 
   const handleAnswerSelect = async (answerId: string) => {
     if (answered || gamePhase !== 'question' || !currentQuestion || !playerSession) return

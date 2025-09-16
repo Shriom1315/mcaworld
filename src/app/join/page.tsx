@@ -209,7 +209,7 @@ export default function JoinGamePage() {
                   required
                 />
                 <p className="text-xs text-gray-500 mt-2 text-center">
-                  Enter the 6-digit PIN displayed on your teacher's screen
+                  Enter the 6-digit PIN displayed on your teacher&apos;s screen
                 </p>
               </div>
 
@@ -238,7 +238,7 @@ export default function JoinGamePage() {
               </Button>
 
               <div className="text-center text-sm text-gray-500">
-                <p>Enter a 6-digit PIN from your teacher's screen to join the game</p>
+                <p>Enter a 6-digit PIN from your teacher&apos;s screen to join the game</p>
               </div>
             </form>
           )}
@@ -316,14 +316,14 @@ export default function JoinGamePage() {
               </div>
               
               <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-2">You're in!</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-2">You&apos;re in!</h2>
                 <p className="text-gray-600 mb-1">Welcome, <span className="font-semibold">{nickname}</span></p>
                 <p className="text-sm text-gray-500">Waiting for the game to start...</p>
               </div>
 
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-sm text-gray-600">
-                  You'll be redirected to the game lobby in a moment.
+                  You&apos;ll be redirected to the game lobby in a moment.
                   <br />
                   Get ready to play!
                 </p>
@@ -336,7 +336,7 @@ export default function JoinGamePage() {
         <div className="mt-8 text-center text-white/80">
           <h3 className="font-semibold mb-2">How to play:</h3>
           <ul className="text-sm space-y-1">
-            <li>1. Enter the game PIN from your teacher's screen</li>
+            <li>1. Enter the game PIN from your teacher&apos;s screen</li>
             <li>2. Choose a nickname</li>
             <li>3. Wait for the game to start</li>
             <li>4. Answer questions on your device</li>
