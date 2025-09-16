@@ -7,7 +7,7 @@ import { Eye, EyeOff, ArrowLeft, Check } from 'lucide-react'
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
 import { doc, setDoc } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase'
-import { COLLECTIONS } from '@/types/supabase'
+import { COLLECTIONS } from '@/types/firebase'
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/firebase'
 import { collection, addDoc, getDocs, query, where, Timestamp } from 'firebase/firestore'
-import { COLLECTIONS } from '@/types/supabase'
+import { COLLECTIONS } from '@/types/firebase'
 
 // Generate a unique 6-digit PIN
 function generateGamePin(): string {

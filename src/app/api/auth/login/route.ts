@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase'
-import { COLLECTIONS } from '@/types/supabase'
+import { COLLECTIONS } from '@/types/firebase'
 
 export async function POST(request: NextRequest) {
   try {

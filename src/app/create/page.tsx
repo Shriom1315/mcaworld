@@ -9,7 +9,7 @@ import { Plus, Save, Eye, Settings, Clock, Trophy, Image, Video, Trash2, Chevron
 import { Question, Answer } from '@/types'
 import { collection, addDoc, Timestamp } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { COLLECTIONS } from '@/types/supabase'
+import { COLLECTIONS } from '@/types/firebase'
 
 // Mock user data
 const mockUser = {

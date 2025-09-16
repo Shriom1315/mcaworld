@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { collection, query, where, onSnapshot } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { COLLECTIONS } from '@/types/supabase'
+import { COLLECTIONS } from '@/types/firebase'
 import { Clock, Users, Zap, Target, CheckCircle, AlertCircle } from 'lucide-react'
 import Avatar from '@/components/avatar/Avatar'
 

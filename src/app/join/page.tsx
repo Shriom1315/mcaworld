@@ -8,7 +8,7 @@ import { ArrowLeft, Users, Gamepad2 } from 'lucide-react'
 import Link from 'next/link'
 import { collection, doc, getDoc, getDocs, updateDoc, addDoc, query, where, Timestamp } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { COLLECTIONS } from '@/types/supabase'
+import { COLLECTIONS } from '@/types/firebase'
 
 export default function JoinGamePage() {
   // Always start fresh - no stored PIN or nickname

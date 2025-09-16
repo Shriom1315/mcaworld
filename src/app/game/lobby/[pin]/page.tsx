@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Users, Crown, Wifi, WifiOff, Volume2, VolumeX, Check } from 'lucide-react'
 import { collection, doc, getDoc, getDocs, query, where, onSnapshot } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { COLLECTIONS } from '@/types/supabase'
+import { COLLECTIONS } from '@/types/firebase'
 import AvatarSelector, { avatarOptions } from '@/components/avatar/AvatarSelector'
 import Avatar from '@/components/avatar/Avatar'
 

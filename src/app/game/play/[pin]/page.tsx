@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Crown, Timer, Users, Trophy, Check, X, Zap } from 'lucide-react'
 import { collection, doc, getDoc, getDocs, query, where, onSnapshot, updateDoc, addDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { COLLECTIONS } from '@/types/supabase'
+import { COLLECTIONS } from '@/types/firebase'
 import Avatar from '@/components/avatar/Avatar'
 import AnimatedLeaderboard from '@/components/game/AnimatedLeaderboard'
 

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Plus, Search, Play, Edit, Trash2, Users, BarChart3, Calendar, Filter, Grid, List, Trophy, Star, Zap, Target, GamepadIcon, Brain, Award, Rocket, Sparkles, Crown } from 'lucide-react'
 import { collection, addDoc, getDocs, query, where, orderBy, Timestamp } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { COLLECTIONS } from '@/types/supabase'
+import { COLLECTIONS } from '@/types/firebase'
 
 // Quiz interface for TypeScript
 interface Quiz {
