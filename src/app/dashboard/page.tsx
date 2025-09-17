@@ -9,6 +9,7 @@ import { Plus, Search, Play, Edit, Trash2, Users, BarChart3, Calendar, Filter, G
 import { collection, addDoc, getDocs, query, where, orderBy, Timestamp } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { COLLECTIONS } from '@/types/firebase'
+import BitWiseLoader from '@/components/ui/BitWiseLoader'
 
 // Quiz interface for TypeScript
 interface Quiz {
@@ -351,14 +352,8 @@ export default function DashboardPage() {
         {/* Epic Loading State */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-16">
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-kahoot-purple/30 border-t-kahoot-purple rounded-full animate-spin"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <GamepadIcon className="w-6 h-6 text-kahoot-purple animate-pulse" />
-              </div>
-            </div>
+            <BitWiseLoader size="xl" className="mb-6" text="Loading Epic Quests..." />
             <div className="mt-6 text-center">
-              <h3 className="text-xl font-black text-kahoot-purple mb-2">Loading Epic Quests...</h3>
               <p className="text-gray-600 font-medium">🚀 Preparing your learning adventures!</p>
             </div>
           </div>

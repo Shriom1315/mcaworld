@@ -12,6 +12,7 @@ import RealTimeCounter from '@/components/game/RealTimeCounter'
 import AnimatedLeaderboard from '@/components/game/AnimatedLeaderboard'
 import { LeaderboardReveal } from '@/components/game'
 import PlayerStatus from '@/components/game/PlayerStatus'
+import BitWiseLoader from '@/components/ui/BitWiseLoader'
 
 
 
@@ -185,8 +186,7 @@ export default function HostGamePage() {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-kahoot-purple border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-xl">Loading game...</p>
+          <BitWiseLoader size="xl" className="mb-8" text="Loading game..." />
         </div>
       </div>
     )

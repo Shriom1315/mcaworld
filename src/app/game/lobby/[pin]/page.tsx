@@ -9,6 +9,7 @@ import { db } from '@/lib/firebase'
 import { COLLECTIONS } from '@/types/firebase'
 import AvatarSelector, { avatarOptions } from '@/components/avatar/AvatarSelector'
 import Avatar from '@/components/avatar/Avatar'
+import BitWiseLoader from '@/components/ui/BitWiseLoader'
 
 
 
@@ -166,8 +167,7 @@ export default function GameLobbyPage() {
       {loading ? (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center text-white">
-            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-xl">Joining game...</p>
+            <BitWiseLoader size="lg" className="mb-6" text="Joining game..." />
           </div>
         </div>
       ) : !quiz || !game ? (

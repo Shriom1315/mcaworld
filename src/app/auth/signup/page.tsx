@@ -8,6 +8,7 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
 import { doc, setDoc } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase'
 import { COLLECTIONS } from '@/types/firebase'
+import BitWiseLoader from '@/components/ui/BitWiseLoader'
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -283,7 +284,7 @@ export default function SignupPage() {
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    <BitWiseLoader size="sm" showText={false} className="mr-2" />
                     Creating account...
                   </div>
                 ) : (

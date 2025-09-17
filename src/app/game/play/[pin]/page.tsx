@@ -16,6 +16,7 @@ import {
   QuestionHeader, 
   AnswerStreak 
 } from '@/components/game'
+import BitWiseLoader from '@/components/ui/BitWiseLoader'
 
 
 
@@ -288,8 +289,7 @@ export default function PlayerGamePage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-kahoot-purple via-kahoot-blue to-indigo-600 flex items-center justify-center">
         <div className="text-center text-white">
-          <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-xl">Loading game...</p>
+          <BitWiseLoader size="xl" className="mb-8" text="Loading game..." />
         </div>
       </div>
     )
@@ -299,7 +299,7 @@ export default function PlayerGamePage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-kahoot-purple via-kahoot-blue to-indigo-600 flex items-center justify-center">
         <div className="text-center text-white">
-          <h1 className="text-2xl font-bold mb-4">Waiting for questions...</h1>
+          <BitWiseLoader size="lg" className="mb-6" text="Waiting for questions..." />
           <p className="text-gray-300 mb-6">The host will start the quiz soon.</p>
         </div>
       </div>

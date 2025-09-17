@@ -10,6 +10,7 @@ import { Question, Answer } from '@/types'
 import { collection, addDoc, Timestamp } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { COLLECTIONS } from '@/types/firebase'
+import BitWiseLoader from '@/components/ui/BitWiseLoader'
 
 // Mock user data
 const mockUser = {
@@ -25,6 +26,7 @@ export default function CreateQuizPage() {
   const [questions, setQuestions] = useState<Question[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(-1)
   const [isPreviewMode, setIsPreviewMode] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
 
   const addQuestion = () => {
     const newQuestion: Question = {
@@ -119,6 +121,7 @@ export default function CreateQuizPage() {
     }
 
     try {
+      setIsSaving(true)
       const now = Timestamp.now()
       const quizData = {
         title: quizTitle,
@@ -156,6 +159,8 @@ export default function CreateQuizPage() {
       }
       
       alert(errorMessage)
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -270,9 +275,18 @@ export default function CreateQuizPage() {
                 <Eye className="w-4 h-4 mr-2" />
                 {isPreviewMode ? 'Edit' : 'Preview'}
               </Button>
-              <Button onClick={saveQuiz}>
-                <Save className="w-4 h-4 mr-2" />
-                Save
+              <Button onClick={saveQuiz} disabled={isSaving}>
+                {isSaving ? (
+                  <>
+                    <BitWiseLoader size="sm" showText={false} className="mr-2" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save
+                  </>
+                )}
               </Button>
             </div>
           </div>

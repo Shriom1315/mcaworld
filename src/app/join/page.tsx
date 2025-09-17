@@ -10,6 +10,7 @@ import { collection, doc, getDoc, getDocs, updateDoc, addDoc, query, where, Time
 import { signInAnonymously } from 'firebase/auth'
 import { auth, db } from '@/lib/firebase'
 import { COLLECTIONS } from '@/types/firebase'
+import BitWiseLoader from '@/components/ui/BitWiseLoader'
 
 export default function JoinGamePage() {
   // Always start fresh - no stored PIN or nickname
@@ -252,8 +253,7 @@ export default function JoinGamePage() {
 
           {isAuthenticating ? (
             <div className="text-center space-y-4">
-              <div className="w-12 h-12 border-4 border-kahoot-purple border-t-transparent rounded-full animate-spin mx-auto"></div>
-              <p className="text-gray-600">Setting up your session...</p>
+              <BitWiseLoader size="md" className="mb-4" text="Setting up your session..." />
             </div>
           ) : (
             <>
@@ -295,7 +295,7 @@ export default function JoinGamePage() {
               >
                 {isLoading ? (
                   <div className="flex items-center">
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    <BitWiseLoader size="sm" showText={false} className="mr-2" />
                     Connecting...
                   </div>
                 ) : (
@@ -354,7 +354,7 @@ export default function JoinGamePage() {
                 >
                   {isLoading ? (
                     <div className="flex items-center">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      <BitWiseLoader size="sm" showText={false} className="mr-2" />
                       Joining...
                     </div>
                   ) : (
@@ -381,7 +381,7 @@ export default function JoinGamePage() {
           {step === 'waiting' && (
             <div className="text-center space-y-6">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                <BitWiseLoader size="sm" showText={false} className="text-green-600" />
               </div>
               
               <div>
