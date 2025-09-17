@@ -427,34 +427,36 @@ export default function PlayerGamePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-kahoot-purple via-kahoot-blue to-indigo-600">
       {/* Status Bar */}
-      <div className="flex items-center justify-between p-4 bg-black/20 text-white">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <Crown className="w-5 h-5 text-yellow-400" />
-            <span className="font-bold">{nickname}</span>
+      <div className="flex items-center justify-between p-3 bg-black/20 text-white text-sm">
+        <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1">
+            <Crown className="w-4 h-4 text-yellow-400" />
+            <span className="font-bold truncate max-w-[80px]">{nickname}</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <Trophy className="w-4 h-4" />
+          <div className="flex items-center space-x-1">
+            <Trophy className="w-3 h-3" />
             <span className="font-semibold">{score}</span>
           </div>
         </div>
         
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm">#{rank}</span>
-            <Users className="w-4 h-4" />
+        <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1">
+            <span className="text-xs">#{rank}</span>
+            <Users className="w-3 h-3" />
           </div>
-          <span className="text-sm">PIN: {gamePin}</span>
+          <span className="text-xs">PIN: {gamePin}</span>
         </div>
       </div>
 
       {/* Question Header */}
-      <QuestionHeader 
-        questionNumber={currentQuestionIndex + 1}
-        totalQuestions={totalQuestions}
-        questionType={currentQuestion?.type || 'multiple_choice'}
-        timeLeft={gamePhase === 'question' ? timeLeft : undefined}
-      />
+      <div className="relative z-10">
+        <QuestionHeader 
+          questionNumber={currentQuestionIndex + 1}
+          totalQuestions={totalQuestions}
+          questionType={currentQuestion?.type || 'multiple_choice'}
+          timeLeft={gamePhase === 'question' ? timeLeft : undefined}
+        />
+      </div>
 
       {gamePhase === 'countdown' && (
         <CountdownReady
@@ -465,7 +467,7 @@ export default function PlayerGamePage() {
       )}
 
       {gamePhase === 'question' && (
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-140px)] p-4">
+        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] p-4">
           {/* Answer Streak Display */}
           {answerStreak > 0 && (
             <div className="mb-4">
@@ -475,36 +477,36 @@ export default function PlayerGamePage() {
 
           {/* Question Number */}
           <div className="text-center mb-6">
-            <h2 className="text-white text-xl font-semibold">
+            <h2 className="text-white text-lg font-semibold">
               Question {currentQuestionIndex + 1} of {totalQuestions}
             </h2>
             <p className="text-white/80 text-sm mt-1">Look at the screen for the question</p>
           </div>
 
           {/* Answer Buttons */}
-          <div className="grid grid-cols-2 gap-4 w-full max-w-lg">
+          <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
             {currentQuestion?.answers?.map((answer: any, index: number) => (
               <button
                 key={answer.id}
                 onClick={() => handleAnswerSelect(answer.id)}
                 disabled={answered}
-                className={`${answerColors[index]} h-24 rounded-xl font-bold text-xl shadow-lg transform transition-all duration-200 ${
+                className={`${answerColors[index]} h-20 rounded-xl font-bold text-lg shadow-lg transform transition-all duration-200 ${
                   !answered ? 'hover:scale-105 active:scale-95' : 'opacity-50'
                 } ${selectedAnswer === answer.id ? 'ring-4 ring-white scale-105' : ''}`}
               >
                 <div className="flex flex-col items-center justify-center">
-                  <span className="text-3xl mb-1">{answerSymbols[index]}</span>
-                  <span className="text-sm">{answer.text}</span>
+                  <span className="text-2xl mb-1">{answerSymbols[index]}</span>
+                  <span className="text-xs">{answer.text}</span>
                 </div>
               </button>
             ))}
           </div>
 
           {answered && (
-            <div className="mt-6 text-center">
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-white">
-                <p className="font-semibold">Answer submitted!</p>
-                <p className="text-sm opacity-90">Waiting for others to answer...</p>
+            <div className="mt-4 text-center">
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-white">
+                <p className="font-semibold text-sm">Answer submitted!</p>
+                <p className="text-xs opacity-90">Waiting for others to answer...</p>
               </div>
             </div>
           )}

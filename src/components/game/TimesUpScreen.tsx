@@ -64,23 +64,6 @@ export default function TimesUpScreen({
       <div className="absolute inset-0 bg-gradient-to-br from-red-600/90 via-pink-600/90 to-purple-700/90"></div>
       
       <div className="relative z-10 text-center text-white max-w-md w-full">
-        {/* Question number indicator (top-left style) */}
-        <div className="absolute -top-20 left-0">
-          <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-white font-bold text-lg">
-            {questionNumber}
-          </div>
-        </div>
-
-        {/* Quiz type badge (top-center style) */}
-        <div className="absolute -top-16 left-1/2 transform -translate-x-1/2">
-          <div className="bg-white/90 rounded-full px-4 py-2 flex items-center space-x-2">
-            <div className="w-6 h-6 bg-gradient-to-br from-red-500 to-blue-500 rounded-sm flex items-center justify-center">
-              <div className="w-4 h-4 bg-white/90 rounded-sm"></div>
-            </div>
-            <span className="text-gray-800 font-semibold text-sm">Quiz</span>
-          </div>
-        </div>
-
         {/* Main "Time's up" circle */}
         <div 
           className={`
@@ -182,22 +165,6 @@ export default function TimesUpScreen({
             <Clock className="w-4 h-4" />
             <span className="text-sm font-medium">Next question coming up...</span>
             <Clock className="w-4 h-4" />
-          </div>
-        </div>
-
-        {/* Bottom player info area */}
-        <div className="absolute bottom-8 left-0 right-0 flex items-center justify-between">
-          {/* Player avatar and name */}
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-lg">{playerName.charAt(0).toUpperCase()}</span>
-            </div>
-            <span className="text-white font-semibold">{playerName}</span>
-          </div>
-
-          {/* Status indicator */}
-          <div className="bg-red-500/80 rounded-lg px-4 py-2">
-            <span className="text-white font-bold text-sm">MISSED</span>
           </div>
         </div>
       </div>

@@ -43,26 +43,26 @@ export default function QuestionHeader({
   const typeDisplay = getQuestionTypeDisplay()
 
   return (
-    <div className={`absolute top-4 left-0 right-0 z-20 ${className}`}>
-      <div className="flex items-center justify-between px-4">
+    <div className={`relative ${className}`}>
+      <div className="flex items-center justify-between px-4 py-2">
         {/* Question number indicator (left) */}
-        <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/30 shadow-lg">
-          <span className="text-white font-bold text-lg">{questionNumber}</span>
+        <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/30 shadow-lg">
+          <span className="text-white font-bold text-sm">{questionNumber}</span>
         </div>
 
         {/* Quiz type badge (center) */}
-        <div className="bg-white/95 backdrop-blur-sm rounded-full px-4 py-2 flex items-center space-x-2 shadow-lg border border-white/50">
-          <div className={`w-6 h-6 bg-gradient-to-br ${typeDisplay.colors} rounded-sm flex items-center justify-center`}>
+        <div className="bg-white/95 backdrop-blur-sm rounded-full px-3 py-1 flex items-center space-x-2 shadow-lg border border-white/50">
+          <div className={`w-5 h-5 bg-gradient-to-br ${typeDisplay.colors} rounded-sm flex items-center justify-center`}>
             {typeDisplay.icon}
           </div>
-          <span className="text-gray-800 font-semibold text-sm">{typeDisplay.text}</span>
+          <span className="text-gray-800 font-semibold text-xs">{typeDisplay.text}</span>
         </div>
 
         {/* Timer (right) - only show if timeLeft is provided */}
         {timeLeft !== undefined && (
           <div 
             className={`
-              w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shadow-lg border-2
+              w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow-lg border-2
               ${timeLeft <= 5 
                 ? 'bg-red-500 border-red-300 text-white animate-pulse' 
                 : timeLeft <= 10 
@@ -77,8 +77,8 @@ export default function QuestionHeader({
       </div>
 
       {/* Progress bar showing question progress */}
-      <div className="mt-3 px-4">
-        <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
+      <div className="px-4 pb-2">
+        <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
           <div 
             className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full transition-all duration-500 ease-out"
             style={{ width: `${(questionNumber / totalQuestions) * 100}%` }}
