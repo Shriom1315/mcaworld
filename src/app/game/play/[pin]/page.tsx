@@ -14,7 +14,8 @@ import {
   CountdownReady, 
   TimesUpScreen, 
   QuestionHeader, 
-  AnswerStreak 
+  AnswerStreak,
+  LeaderboardReveal 
 } from '@/components/game'
 
 
@@ -35,7 +36,7 @@ export default function PlayerGamePage() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [timeLeft, setTimeLeft] = useState(30)
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
-  const [gamePhase, setGamePhase] = useState<'countdown' | 'question' | 'answer' | 'results' | 'final' | 'timeup'>('countdown')
+  const [gamePhase, setGamePhase] = useState<'countdown' | 'question' | 'answer' | 'leaderboard' | 'results' | 'final' | 'timeup'>('countdown')
   const [score, setScore] = useState(0)
   const [questionScore, setQuestionScore] = useState(0)
   const [rank, setRank] = useState(1)
@@ -200,12 +201,17 @@ export default function PlayerGamePage() {
       return () => clearTimeout(timer)
     } else if (gamePhase === 'answer' || gamePhase === 'timeup') {
       const timer = setTimeout(() => {
+        setGamePhase('leaderboard') // Show leaderboard first!
+      }, 3000)
+      return () => clearTimeout(timer)
+    } else if (gamePhase === 'leaderboard') {
+      const timer = setTimeout(() => {
         if (isLastQuestion) {
           setGamePhase('final')
         } else {
           setGamePhase('results')
         }
-      }, 3000)
+      }, 5000) // Give more time for leaderboard drama
       return () => clearTimeout(timer)
     } else if (gamePhase === 'results') {
       const timer = setTimeout(() => {
@@ -529,6 +535,15 @@ export default function PlayerGamePage() {
           playerName={nickname}
           totalScore={score}
           rank={rank}
+          onComplete={() => {}}
+        />
+      )}
+
+      {gamePhase === 'leaderboard' && (
+        <LeaderboardReveal
+          gameId={game?.id || ''}
+          playerNickname={nickname}
+          currentQuestionIndex={currentQuestionIndex}
           onComplete={() => {}}
         />
       )}
