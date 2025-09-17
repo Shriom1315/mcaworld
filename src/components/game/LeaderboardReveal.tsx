@@ -175,7 +175,7 @@ export default function LeaderboardReveal({
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 animate-pulse">
             🏆 LEADERBOARD 🏆
           </h1>
-          {currentPlayer && (
+          {currentPlayer && playerNickname !== "Host View" && (
             <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 max-w-xs mx-auto">
               <div className="text-white text-lg font-semibold">
                 You're #{currentPlayer.position}!

@@ -14,8 +14,7 @@ import {
   CountdownReady, 
   TimesUpScreen, 
   QuestionHeader, 
-  AnswerStreak,
-  LeaderboardReveal 
+  AnswerStreak 
 } from '@/components/game'
 
 
@@ -36,7 +35,7 @@ export default function PlayerGamePage() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [timeLeft, setTimeLeft] = useState(30)
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
-  const [gamePhase, setGamePhase] = useState<'countdown' | 'question' | 'answer' | 'leaderboard' | 'results' | 'final' | 'timeup'>('countdown')
+  const [gamePhase, setGamePhase] = useState<'countdown' | 'question' | 'answer' | 'results' | 'final' | 'timeup'>('countdown')
   const [score, setScore] = useState(0)
   const [questionScore, setQuestionScore] = useState(0)
   const [rank, setRank] = useState(1)
@@ -201,17 +200,12 @@ export default function PlayerGamePage() {
       return () => clearTimeout(timer)
     } else if (gamePhase === 'answer' || gamePhase === 'timeup') {
       const timer = setTimeout(() => {
-        setGamePhase('leaderboard') // Show leaderboard first!
-      }, 3000)
-      return () => clearTimeout(timer)
-    } else if (gamePhase === 'leaderboard') {
-      const timer = setTimeout(() => {
         if (isLastQuestion) {
           setGamePhase('final')
         } else {
           setGamePhase('results')
         }
-      }, 5000) // Give more time for leaderboard drama
+      }, 3000)
       return () => clearTimeout(timer)
     } else if (gamePhase === 'results') {
       const timer = setTimeout(() => {
@@ -539,15 +533,6 @@ export default function PlayerGamePage() {
         />
       )}
 
-      {gamePhase === 'leaderboard' && (
-        <LeaderboardReveal
-          gameId={game?.id || ''}
-          playerNickname={nickname}
-          currentQuestionIndex={currentQuestionIndex}
-          onComplete={() => {}}
-        />
-      )}
-
       {gamePhase === 'results' && (
         <div className="flex flex-col items-center justify-center min-h-[calc(100vh-72px)] p-4">
           <div className="text-center text-white max-w-2xl w-full">
@@ -587,20 +572,33 @@ export default function PlayerGamePage() {
               </div>
             </div>
             
-            {/* Live Leaderboard */}
+            {/* Personal Results Only - No Leaderboard */}
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center justify-center">
-                <Trophy className="w-6 h-6 mr-2 text-yellow-400" />
-                Live Leaderboard
-                <Trophy className="w-6 h-6 ml-2 text-yellow-400" />
+              <h2 className="text-2xl font-bold mb-6 text-center text-white">
+                Your Results
               </h2>
               
-              <AnimatedLeaderboard 
-                gameId={game?.id || ''} 
-                showPositionChanges={true} 
-                maxPlayers={5}
-                className="max-h-80 overflow-y-auto"
-              />
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center">
+                <div className="text-3xl font-bold text-yellow-400 animate-pulse mb-2">{score}</div>
+                <div className="text-sm text-white/90 mb-4">Your Total Score</div>
+                
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-lg font-bold text-blue-400">#{rank}</div>
+                    <div className="text-white/80">Your Position</div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-green-400">{totalPlayers}</div>
+                    <div className="text-white/80">Total Players</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="text-center mt-4">
+                <div className="text-white/80 text-sm">
+                  Check the main screen for full leaderboard!
+                </div>
+              </div>
             </div>
 
             <div className="mt-6 p-4 bg-gradient-to-r from-purple-600/20 to-blue-600/20 rounded-xl">

@@ -10,7 +10,7 @@ import { COLLECTIONS } from '@/types/firebase'
 import Avatar from '@/components/avatar/Avatar'
 import RealTimeCounter from '@/components/game/RealTimeCounter'
 import AnimatedLeaderboard from '@/components/game/AnimatedLeaderboard'
-import ResultsScreen from '@/components/game/ResultsScreen'
+import { LeaderboardReveal } from '@/components/game'
 import PlayerStatus from '@/components/game/PlayerStatus'
 
 
@@ -554,11 +554,12 @@ Game Settings:
 
           {gamePhase === 'results' && (
             <div className="flex-1 relative">
-              <ResultsScreen 
+              <LeaderboardReveal
                 gameId={game.id} 
+                playerNickname="Host View"
                 currentQuestionIndex={currentQuestionIndex}
-                onAnimationComplete={() => {
-                  console.log('Results animation completed');
+                onComplete={() => {
+                  console.log('Leaderboard reveal completed');
                 }}
                 className="min-h-full"
               />
