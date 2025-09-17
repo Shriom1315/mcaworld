@@ -1,6 +1,6 @@
 # Firebase Database Setup Guide
 
-This guide will help you set up Firebase as the database for your BitWise platform with real-time features.
+This guide will help you set up Firebase as the database for your Kahoot! clone with real-time features.
 
 ## 🔥 **Step 1: Create Firebase Project**
 

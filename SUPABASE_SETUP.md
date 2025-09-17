@@ -1,6 +1,6 @@
 # Supabase Database Setup Guide
 
-This guide will help you set up Supabase as the database for your BitWise platform.
+This guide will help you set up Supabase as the database for your Kahoot! clone.
 
 ## 1. Create a Supabase Project
 

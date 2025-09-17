@@ -8,7 +8,6 @@ import { signInWithEmailAndPassword } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase'
 import { COLLECTIONS } from '@/types/firebase'
-import BitWiseLoader from '@/components/ui/BitWiseLoader'
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -85,9 +84,9 @@ export default function LoginPage() {
           {/* Logo */}
           <div className="flex items-center space-x-2 mb-8">
             <div className="w-12 h-12 bg-kahoot-purple rounded-lg flex items-center justify-center">
-              <span className="text-2xl font-bold text-white">B</span>
+              <span className="text-2xl font-bold text-white">K!</span>
             </div>
-            <span className="text-3xl font-bold text-kahoot-purple">BitWise</span>
+            <span className="text-3xl font-bold text-kahoot-purple">Kahoot!</span>
           </div>
 
           {/* Form */}
@@ -168,7 +167,7 @@ export default function LoginPage() {
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
-                    <BitWiseLoader size="sm" showText={false} className="mr-2" />
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                     Signing in...
                   </div>
                 ) : (
@@ -221,7 +220,7 @@ export default function LoginPage() {
           </div>
           <h2 className="text-4xl font-bold mb-4">Welcome back to learning!</h2>
           <p className="text-xl text-white/90 max-w-md">
-            Join millions of learners and educators who make learning awesome with BitWise!
+            Join millions of learners and educators who make learning awesome with Kahoot!
           </p>
         </div>
       </div>

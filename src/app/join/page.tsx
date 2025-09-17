@@ -10,7 +10,6 @@ import { collection, doc, getDoc, getDocs, updateDoc, addDoc, query, where, Time
 import { signInAnonymously } from 'firebase/auth'
 import { auth, db } from '@/lib/firebase'
 import { COLLECTIONS } from '@/types/firebase'
-import BitWiseLoader from '@/components/ui/BitWiseLoader'
 
 export default function JoinGamePage() {
   // Always start fresh - no stored PIN or nickname
@@ -26,9 +25,9 @@ export default function JoinGamePage() {
   useEffect(() => {
     // Clear localStorage if any game data was stored
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('bitwise_game_pin')
-      localStorage.removeItem('bitwise_player_id')
-      localStorage.removeItem('bitwise_nickname')
+      localStorage.removeItem('kahoot_game_pin')
+      localStorage.removeItem('kahoot_player_id')
+      localStorage.removeItem('kahoot_nickname')
     }
     
     // Sign in anonymously for quiz participation
@@ -246,14 +245,15 @@ export default function JoinGamePage() {
           {/* Logo */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-kahoot-purple rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl font-bold text-white">B</span>
+              <span className="text-3xl font-bold text-white">K!</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Join a BitWise!</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Join a Kahoot!</h1>
           </div>
 
           {isAuthenticating ? (
             <div className="text-center space-y-4">
-              <BitWiseLoader size="md" className="mb-4" text="Setting up your session..." />
+              <div className="w-12 h-12 border-4 border-kahoot-purple border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <p className="text-gray-600">Setting up your session...</p>
             </div>
           ) : (
             <>
@@ -295,7 +295,7 @@ export default function JoinGamePage() {
               >
                 {isLoading ? (
                   <div className="flex items-center">
-                    <BitWiseLoader size="sm" showText={false} className="mr-2" />
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                     Connecting...
                   </div>
                 ) : (
@@ -354,7 +354,7 @@ export default function JoinGamePage() {
                 >
                   {isLoading ? (
                     <div className="flex items-center">
-                      <BitWiseLoader size="sm" showText={false} className="mr-2" />
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                       Joining...
                     </div>
                   ) : (
@@ -381,7 +381,7 @@ export default function JoinGamePage() {
           {step === 'waiting' && (
             <div className="text-center space-y-6">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <BitWiseLoader size="sm" showText={false} className="text-green-600" />
+                <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
               </div>
               
               <div>

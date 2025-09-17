@@ -5,8 +5,8 @@ import '@/styles/globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'BitWise - Make Learning Awesome!',
-  description: 'Create and play fun learning games with BitWise',
+  title: 'Kahoot! Clone - Make Learning Awesome!',
+  description: 'Create and play fun learning games with our Kahoot! clone',
 }
 
 export default function RootLayout({

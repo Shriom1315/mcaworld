@@ -9,7 +9,6 @@ import { db } from '@/lib/firebase'
 import { COLLECTIONS } from '@/types/firebase'
 import AvatarSelector, { avatarOptions } from '@/components/avatar/AvatarSelector'
 import Avatar from '@/components/avatar/Avatar'
-import BitWiseLoader from '@/components/ui/BitWiseLoader'
 
 
 
@@ -64,12 +63,12 @@ export default function GameLobbyPage() {
     if (typeof window !== 'undefined') {
       // Only keep current game data, clear any previous game sessions
       const currentPin = params.pin
-      const storedPin = localStorage.getItem('bitwise_current_game_pin')
+      const storedPin = localStorage.getItem('kahoot_current_game_pin')
       
       if (storedPin !== currentPin) {
         // Different game, clear all stored data
         localStorage.clear()
-        localStorage.setItem('bitwise_current_game_pin', currentPin as string)
+        localStorage.setItem('kahoot_current_game_pin', currentPin as string)
       }
     }
   }, [params.pin])
@@ -167,7 +166,8 @@ export default function GameLobbyPage() {
       {loading ? (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center text-white">
-            <BitWiseLoader size="lg" className="mb-6" text="Joining game..." />
+            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-xl">Joining game...</p>
           </div>
         </div>
       ) : !quiz || !game ? (
