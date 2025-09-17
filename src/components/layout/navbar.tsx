@@ -25,9 +25,9 @@ export function Navbar({ user }: NavbarProps) {
           {/* Logo */}
           <Link href={user ? '/dashboard' : '/'} className="flex items-center space-x-2">
             <div className="w-10 h-10 bg-kahoot-purple rounded-lg flex items-center justify-center">
-              <span className="text-xl font-bold text-white">K!</span>
+              <span className="text-xl font-bold text-white">B</span>
             </div>
-            <span className="text-xl font-bold text-kahoot-purple">Kahoot!</span>
+            <span className="text-xl font-bold text-kahoot-purple">BitWise</span>
           </Link>
 
           {user ? (

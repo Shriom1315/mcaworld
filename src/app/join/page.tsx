@@ -26,9 +26,9 @@ export default function JoinGamePage() {
   useEffect(() => {
     // Clear localStorage if any game data was stored
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('kahoot_game_pin')
-      localStorage.removeItem('kahoot_player_id')
-      localStorage.removeItem('kahoot_nickname')
+      localStorage.removeItem('bitwise_game_pin')
+      localStorage.removeItem('bitwise_player_id')
+      localStorage.removeItem('bitwise_nickname')
     }
     
     // Sign in anonymously for quiz participation
@@ -246,9 +246,9 @@ export default function JoinGamePage() {
           {/* Logo */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-kahoot-purple rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl font-bold text-white">K!</span>
+              <span className="text-3xl font-bold text-white">B</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Join a Kahoot!</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Join a BitWise!</h1>
           </div>
 
           {isAuthenticating ? (

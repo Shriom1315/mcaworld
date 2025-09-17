@@ -21,7 +21,7 @@ const mockUser = {
 
 export default function CreateQuizPage() {
   const router = useRouter()
-  const [quizTitle, setQuizTitle] = useState('Untitled Kahoot')
+  const [quizTitle, setQuizTitle] = useState('Untitled BitWise')
   const [quizDescription, setQuizDescription] = useState('')
   const [questions, setQuestions] = useState<Question[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(-1)

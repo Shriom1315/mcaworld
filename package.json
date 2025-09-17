@@ -1,7 +1,7 @@
 {
-  "name": "quiz-competition-platform",
+  "name": "bitwise-quiz-platform",
   "version": "1.0.0",
-  "description": "A modern, real-time quiz competition platform with animated leaderboards and live player tracking",
+  "description": "A modern, real-time quiz competition platform with animated leaderboards and live player tracking - BitWise",
   "main": "next.config.js",
   "keywords": [
     "quiz",
@@ -13,7 +13,7 @@
     "leaderboard",
     "animations"
   ],
-  "author": "Quiz Competition Team",
+  "author": "BitWise Team",
   "license": "MIT",
   "private": true,
   "scripts": {

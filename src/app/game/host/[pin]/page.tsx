@@ -382,7 +382,7 @@ Game Settings:
                     <div className="flex items-center space-x-6">
                       <div className="text-center">
                         <p className="text-gray-700 text-sm mb-1">Join at <span className="font-bold">www.kahoot.it</span></p>
-                        <p className="text-gray-600 text-xs">or with the Kahoot! app</p>
+                        <p className="text-gray-600 text-xs">or with the BitWise app</p>
                       </div>
                       <div className="border-l border-gray-300 pl-6">
                         <p className="text-gray-700 text-sm font-medium mb-1">Game PIN:</p>
@@ -405,9 +405,9 @@ Game Settings:
 
                 {/* Main Content Area */}
                 <div className="flex flex-col items-center mt-32">
-                  {/* Kahoot Logo */}
+                  {/* BitWise Logo */}
                   <div className="bg-white/20 backdrop-blur-sm rounded-3xl p-6 mb-8">
-                    <div className="text-6xl font-bold text-white tracking-wider">kahoot!</div>
+                    <div className="text-6xl font-bold text-white tracking-wider">BitWise!</div>
                   </div>
 
                   {/* Hexagonal Container for Game Info */}

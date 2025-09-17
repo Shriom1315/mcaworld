@@ -15,9 +15,9 @@ export default function HomePage() {
           {/* Logo */}
           <div className="flex items-center space-x-2">
             <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-              <span className="text-2xl font-bold text-kahoot-purple">K!</span>
+              <span className="text-2xl font-bold text-kahoot-purple">B</span>
             </div>
-            <span className="text-2xl font-bold text-white">Kahoot!</span>
+            <span className="text-2xl font-bold text-white">BitWise</span>
           </div>
 
           {/* Desktop Navigation */}
@@ -82,7 +82,7 @@ export default function HomePage() {
               <span className="text-kahoot-yellow">awesome!</span>
             </h1>
             <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-              Kahoot! brings the magic of learning for students, teachers, office superheroes, 
+              BitWise brings the magic of learning for students, teachers, office superheroes, 
               trivia fans and lifelong learners.
             </p>
             
@@ -133,7 +133,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-2xl font-bold text-kahoot-purple mb-4">Create</h3>
               <p className="text-gray-600">
-                Make your own kahoots in minutes and share them with others
+                Make your own BitWise quizzes in minutes and share them with others
               </p>
             </div>
 
@@ -143,7 +143,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-2xl font-bold text-kahoot-purple mb-4">Host</h3>
               <p className="text-gray-600">
-                Present your kahoot live to engage your audience
+                Present your BitWise quiz live to engage your audience
               </p>
             </div>
           </div>
@@ -156,7 +156,7 @@ export default function HomePage() {
                 Sign up for free
               </Link>
               <Link href="/create" className="btn-secondary text-lg px-8 py-4">
-                Create a kahoot
+                Create a BitWise
               </Link>
             </div>
           </div>
@@ -170,9 +170,9 @@ export default function HomePage() {
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                  <span className="text-lg font-bold text-kahoot-purple">K!</span>
+                  <span className="text-lg font-bold text-kahoot-purple">B</span>
                 </div>
-                <span className="text-xl font-bold text-white">Kahoot!</span>
+                <span className="text-xl font-bold text-white">BitWise</span>
               </div>
               <p className="text-white/70">
                 Making learning awesome for millions of people worldwide.
@@ -208,7 +208,7 @@ export default function HomePage() {
           </div>
           
           <div className="mt-12 pt-8 border-t border-white/20 text-center text-white/70">
-            <p>&copy; 2024 Kahoot! Clone. Made with ❤️ for learning.</p>
+            <p>&copy; 2024 BitWise. Made with ❤️ for learning.</p>
           </div>
         </div>
       </footer>

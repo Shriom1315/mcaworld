@@ -64,12 +64,12 @@ export default function GameLobbyPage() {
     if (typeof window !== 'undefined') {
       // Only keep current game data, clear any previous game sessions
       const currentPin = params.pin
-      const storedPin = localStorage.getItem('kahoot_current_game_pin')
+      const storedPin = localStorage.getItem('bitwise_current_game_pin')
       
       if (storedPin !== currentPin) {
         // Different game, clear all stored data
         localStorage.clear()
-        localStorage.setItem('kahoot_current_game_pin', currentPin as string)
+        localStorage.setItem('bitwise_current_game_pin', currentPin as string)
       }
     }
   }, [params.pin])

@@ -136,9 +136,9 @@ export default function SignupPage() {
           {/* Logo */}
           <div className="flex items-center space-x-2 mb-8">
             <div className="w-12 h-12 bg-kahoot-purple rounded-lg flex items-center justify-center">
-              <span className="text-2xl font-bold text-white">K!</span>
+              <span className="text-2xl font-bold text-white">B</span>
             </div>
-            <span className="text-3xl font-bold text-kahoot-purple">Kahoot!</span>
+            <span className="text-3xl font-bold text-kahoot-purple">BitWise</span>
           </div>
 
           {/* Form */}

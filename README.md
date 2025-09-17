@@ -1,4 +1,4 @@
-# Kahoot! Clone - Interactive Learning Platform
+# BitWise - Interactive Learning Platform
 
 # 🎮 Interactive Quiz Competition Platform
 
@@ -13,7 +13,7 @@ A modern, real-time quiz competition platform built with Next.js, featuring anim
 
 ### ✅ Completed Features
 
-- **Homepage**: Clean, responsive design matching Kahoot!'s branding
+- **Homepage**: Clean, responsive design with modern BitWise branding
 - **Authentication**: Login/signup pages with social login options
 - **Dashboard**: Quiz management interface with search and filtering
 - **Quiz Creator**: Intuitive quiz creation with multiple question types
@@ -28,8 +28,8 @@ A modern, real-time quiz competition platform built with Next.js, featuring anim
 
 ### 🎨 Design Features
 
-- **Pixel-Perfect UI**: Exact replica of Kahoot!'s visual design
-- **Color Palette**: Authentic Kahoot! colors (purple, blue, red, green, yellow)
+- **Pixel-Perfect UI**: Modern, engaging visual design
+- **Color Palette**: Custom BitWise colors (purple, blue, red, green, yellow)
 - **Typography**: Modern, sans-serif fonts matching the original
 - **Animations**: Smooth hover effects and transitions
 - **Icons**: Comprehensive icon set using Lucide React
@@ -40,7 +40,7 @@ A modern, real-time quiz competition platform built with Next.js, featuring anim
 - **Database**: Firebase (Firestore with real-time synchronization)
 - **Authentication**: Firebase Auth
 - **Storage**: Firebase Storage (for media uploads)
-- **Styling**: Tailwind CSS with custom Kahoot! theme
+- **Styling**: Tailwind CSS with custom BitWise theme
 - **Icons**: Lucide React
 - **State Management**: React hooks and Firebase real-time
 - **API**: Next.js API routes with Firebase Admin SDK
@@ -55,7 +55,7 @@ A modern, real-time quiz competition platform built with Next.js, featuring anim
 ### 1. Clone and Install
 ```bash
 git clone <repository-url>
-cd kahoot-clone
+cd bitwise-quiz
 npm install
 ```
 
@@ -152,7 +152,7 @@ src/
 ### Components
 - **Navbar**: Responsive navigation with user menu
 - **Button**: Styled button component with variants
-- **Input**: Form input with Kahoot! styling
+- **Input**: Form input with BitWise styling
 - **Game Controls**: Timer, question display, answer options
 
 ## 🚀 Future Enhancements
@@ -180,11 +180,11 @@ The application now includes Firebase integration with real-time features! Addit
 
 ## 📄 License
 
-This project is for educational purposes only. Kahoot! is a trademark of Kahoot! AS.
+This project is for educational purposes. BitWise is an independent learning platform.
 
 ## 🙏 Acknowledgments
 
-- [Kahoot!](https://kahoot.com) for the original design inspiration
+- [Kahoot!](https://kahoot.com) for design inspiration
 - [Next.js](https://nextjs.org) for the amazing framework
 - [Tailwind CSS](https://tailwindcss.com) for the utility-first styling
 - [Lucide](https://lucide.dev) for the beautiful icons

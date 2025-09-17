@@ -43,9 +43,9 @@ export default function DashboardPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       // Clear any stored game session data to ensure fresh start for new games
-      localStorage.removeItem('kahoot_current_game_pin')
-      localStorage.removeItem('kahoot_player_id')
-      localStorage.removeItem('kahoot_nickname')
+      localStorage.removeItem('bitwise_current_game_pin')
+      localStorage.removeItem('bitwise_player_id')
+      localStorage.removeItem('bitwise_nickname')
     }
   }, [])
 
@@ -241,7 +241,7 @@ export default function DashboardPage() {
               </div>
               <div className="ml-4">
                 <p className="text-2xl font-bold text-gray-900">{quizzes.length}</p>
-                <p className="text-sm text-gray-600">Total Kahoots</p>
+                <p className="text-sm text-gray-600">Total BitWise</p>
               </div>
             </div>
           </div>
@@ -343,7 +343,7 @@ export default function DashboardPage() {
               {/* Create Button */}
               <a href="/create" className="btn-primary inline-flex items-center">
                 <Plus className="w-4 h-4 mr-2" />
-                Create Kahoot
+                Create BitWise
               </a>
             </div>
           </div>
