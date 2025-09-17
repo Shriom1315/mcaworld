@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Navbar } from '@/components/layout/navbar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import QuizCard from '@/components/ui/QuizCard'
 import { Plus, Search, Play, Edit, Trash2, Users, BarChart3, Calendar, Filter, Grid, List, Trophy, Star, Zap, Target, GamepadIcon, Brain, Award, Rocket, Sparkles, Crown } from 'lucide-react'
 import { collection, addDoc, getDocs, query, where, orderBy, Timestamp } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -361,125 +362,15 @@ export default function DashboardPage() {
           <div className={`${
             viewMode === 'grid' 
               ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' 
-              : 'space-y-4'
+              : 'grid grid-cols-1 gap-4'
           }`}>
-            {filteredQuizzes.map((quiz, index) => (
-              <div
+            {filteredQuizzes.map((quiz) => (
+              <QuizCard
                 key={quiz.id}
-                className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow ${
-                  viewMode === 'list' ? 'flex items-center p-4' : 'overflow-hidden'
-                }`}
-              >
-                {viewMode === 'grid' ? (
-                  <>
-                    {/* Quiz Cover */}
-                    <div className="h-32 bg-gradient-to-br from-kahoot-purple to-kahoot-blue flex items-center justify-center">
-                      <span className="text-4xl">{getQuizEmoji(index)}</span>
-                    </div>
-
-                    {/* Quiz Info */}
-                    <div className="p-4">
-                      <h3 className="font-bold text-gray-900 mb-2 line-clamp-2">{quiz.title}</h3>
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{quiz.description || 'No description'}</p>
-                      
-                      <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                        <span>{quiz.questions?.length || 0} questions</span>
-                        <span>{formatDate(quiz.created_at)}</span>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex items-center gap-2">
-                        <Button 
-                          size="sm" 
-                          className="flex-1 bg-kahoot-purple hover:bg-kahoot-purple/90 text-white font-semibold"
-                          onClick={() => handlePlayQuiz(quiz.id)}
-                          disabled={isHosting}
-                        >
-                          {isHosting ? (
-                            <div className="flex items-center">
-                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-1"></div>
-                              Creating...
-                            </div>
-                          ) : (
-                            <>
-                              <Play className="w-4 h-4 mr-1" />
-                              Start Game
-                            </>
-                          )}
-                        </Button>
-                        <button className="p-2 text-gray-500 hover:text-kahoot-purple">
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button className="p-2 text-gray-500 hover:text-red-500">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {/* List View */}
-                    <div className="w-16 h-16 bg-gradient-to-br from-kahoot-purple to-kahoot-blue rounded-lg flex items-center justify-center mr-4">
-                      <span className="text-2xl">{getQuizEmoji(index)}</span>
-                    </div>
-                    
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-black text-gray-900 text-lg group-hover:text-kahoot-purple transition-colors">{quiz.title}</h3>
-                        <div className="flex items-center gap-1">
-                          <Trophy className="w-4 h-4 text-kahoot-yellow" />
-                          <span className="text-xs font-bold text-kahoot-purple bg-kahoot-yellow/20 px-2 py-1 rounded-full">LV.{index + 1}</span>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-3">{quiz.description || '🎮 Ready for an epic learning adventure!'}</p>
-                      <div className="flex items-center gap-4 text-xs">
-                        <div className="flex items-center gap-1 text-kahoot-blue font-semibold">
-                          <Target className="w-3 h-3" />
-                          <span>{quiz.questions?.length || 0} challenges</span>
-                        </div>
-                        <span className="text-gray-500 font-medium">Created {formatDate(quiz.created_at)}</span>
-                        <span className={`px-3 py-1 rounded-full font-bold text-xs ${
-                          quiz.is_published ? 'bg-gradient-to-r from-green-400 to-green-500 text-white' : 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-700'
-                        }`}>
-                          {quiz.is_published ? '🚀 Live' : '📝 Draft'}
-                        </span>
-                        <div className="flex items-center gap-1">
-                          {[...Array(3)].map((_, i) => (
-                            <Star key={i} className="w-3 h-3 text-kahoot-yellow fill-current" />
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <Button 
-                        size="sm"
-                        className="bg-gradient-to-r from-kahoot-purple to-kahoot-blue hover:from-kahoot-blue hover:to-kahoot-purple text-white font-black py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-                        onClick={() => handlePlayQuiz(quiz.id)}
-                        disabled={isHosting}
-                      >
-                        {isHosting ? (
-                          <div className="flex items-center">
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                            Launching...
-                          </div>
-                        ) : (
-                          <>
-                            <Rocket className="w-4 h-4 mr-2" />
-                            Launch Battle!
-                          </>
-                        )}
-                      </Button>
-                      <button className="p-3 text-gray-500 hover:text-kahoot-purple bg-gray-100 hover:bg-kahoot-purple/10 rounded-xl transition-all duration-200 hover:scale-110">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button className="p-3 text-gray-500 hover:text-red-500 bg-gray-100 hover:bg-red-50 rounded-xl transition-all duration-200 hover:scale-110">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
+                quiz={quiz}
+                onPlay={handlePlayQuiz}
+                onEdit={(quizId) => router.push(`/create?edit=${quizId}`)}
+              />
             ))}
           </div>
         )}
