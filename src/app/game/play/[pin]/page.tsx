@@ -8,7 +8,14 @@ import { collection, doc, getDoc, getDocs, query, where, onSnapshot, updateDoc, 
 import { db } from '@/lib/firebase'
 import { COLLECTIONS } from '@/types/firebase'
 import Avatar from '@/components/avatar/Avatar'
-import AnimatedLeaderboard from '@/components/game/AnimatedLeaderboard'
+import { 
+  AnimatedLeaderboard, 
+  AnswerFeedback, 
+  CountdownReady, 
+  TimesUpScreen, 
+  QuestionHeader, 
+  AnswerStreak 
+} from '@/components/game'
 
 
 
@@ -28,12 +35,14 @@ export default function PlayerGamePage() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [timeLeft, setTimeLeft] = useState(30)
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
-  const [gamePhase, setGamePhase] = useState<'question' | 'answer' | 'results' | 'final'>('question')
+  const [gamePhase, setGamePhase] = useState<'countdown' | 'question' | 'answer' | 'results' | 'final' | 'timeup'>('countdown')
   const [score, setScore] = useState(0)
   const [questionScore, setQuestionScore] = useState(0)
   const [rank, setRank] = useState(1)
   const [totalPlayers, setTotalPlayers] = useState(0)
   const [answered, setAnswered] = useState(false)
+  const [answerStreak, setAnswerStreak] = useState(0)
+  const [lastAnswerCorrect, setLastAnswerCorrect] = useState<boolean | null>(null)
 
   // Fetch initial game and quiz data
   useEffect(() => {
@@ -174,14 +183,22 @@ export default function PlayerGamePage() {
     if (gamePhase === 'question' && timeLeft > 0 && !answered) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
       return () => clearTimeout(timer)
-    } else if (timeLeft === 0 && gamePhase === 'question') {
-      setGamePhase('answer')
+    } else if (timeLeft === 0 && gamePhase === 'question' && !answered) {
+      // Time's up - set streak to 0 and show time's up screen
+      setAnswerStreak(0)
+      setLastAnswerCorrect(false)
+      setGamePhase('timeup')
     }
   }, [timeLeft, gamePhase, answered])
 
   // Auto-advance through phases
   useEffect(() => {
-    if (gamePhase === 'answer') {
+    if (gamePhase === 'countdown') {
+      const timer = setTimeout(() => {
+        setGamePhase('question')
+      }, 3000)
+      return () => clearTimeout(timer)
+    } else if (gamePhase === 'answer' || gamePhase === 'timeup') {
       const timer = setTimeout(() => {
         if (isLastQuestion) {
           setGamePhase('final')
@@ -196,7 +213,9 @@ export default function PlayerGamePage() {
         setTimeLeft(quiz?.questions?.[currentQuestionIndex + 1]?.timeLimit || 30)
         setSelectedAnswer(null)
         setAnswered(false)
-        setGamePhase('question')
+        setQuestionScore(0)
+        setLastAnswerCorrect(null)
+        setGamePhase('countdown')
       }, 4000)
       return () => clearTimeout(timer)
     }
@@ -212,8 +231,18 @@ export default function PlayerGamePage() {
       // Calculate score based on time and correctness
       const isCorrect = currentQuestion.correctAnswerIds?.includes(answerId) || 
                        currentQuestion.answers?.find((a: any) => a.id === answerId)?.isCorrect
+      
+      // Update streak tracking
+      setLastAnswerCorrect(isCorrect)
+      if (isCorrect) {
+        setAnswerStreak(prev => prev + 1)
+      } else {
+        setAnswerStreak(0)
+      }
+      
       const timeBonus = Math.floor((timeLeft / currentQuestion.timeLimit) * 500)
-      const questionPoints = isCorrect ? (currentQuestion.points || 1000) + timeBonus : 0
+      const streakBonus = answerStreak >= 3 ? 100 * answerStreak : 0
+      const questionPoints = isCorrect ? (currentQuestion.points || 1000) + timeBonus + streakBonus : 0
       
       setQuestionScore(questionPoints)
       const newTotalScore = score + questionPoints
@@ -227,12 +256,14 @@ export default function PlayerGamePage() {
         timeToAnswer: currentQuestion.timeLimit - timeLeft,
         isCorrect: isCorrect,
         points: questionPoints,
+        streak: isCorrect ? answerStreak + 1 : 0,
         timestamp: serverTimestamp()
       }
       
       // Update player session with new answer and score
       await updateDoc(sessionRef, {
         score: newTotalScore,
+        streak: isCorrect ? answerStreak + 1 : 0,
         [`answers.${currentQuestionIndex}`]: answerData,
         answered: true,
         isCorrect: isCorrect
@@ -417,16 +448,30 @@ export default function PlayerGamePage() {
         </div>
       </div>
 
+      {/* Question Header */}
+      <QuestionHeader 
+        questionNumber={currentQuestionIndex + 1}
+        totalQuestions={totalQuestions}
+        questionType={currentQuestion?.type || 'multiple_choice'}
+        timeLeft={gamePhase === 'question' ? timeLeft : undefined}
+      />
+
+      {gamePhase === 'countdown' && (
+        <CountdownReady
+          questionNumber={currentQuestionIndex + 1}
+          countdown={3}
+          onCountdownComplete={() => setGamePhase('question')}
+        />
+      )}
+
       {gamePhase === 'question' && (
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-72px)] p-4">
-          {/* Timer */}
-          <div className="mb-8">
-            <div className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold shadow-2xl ${
-              timeLeft <= 5 ? 'bg-red-500 animate-pulse' : timeLeft <= 10 ? 'bg-yellow-500' : 'bg-green-500'
-            } text-white`}>
-              {timeLeft}
+        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-140px)] p-4">
+          {/* Answer Streak Display */}
+          {answerStreak > 0 && (
+            <div className="mb-4">
+              <AnswerStreak streakCount={answerStreak} isActive={false} />
             </div>
-          </div>
+          )}
 
           {/* Question Number */}
           <div className="text-center mb-6">
@@ -467,41 +512,23 @@ export default function PlayerGamePage() {
       )}
 
       {gamePhase === 'answer' && (
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-72px)] p-4">
-          <div className="text-center text-white max-w-md">
-            {/* Correct/Incorrect Indicator */}
-            <div className={`w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl ${
-              selectedAnswer && currentQuestion.correctAnswerIds.includes(selectedAnswer)
-                ? 'bg-green-500' : 'bg-red-500'
-            }`}>
-              {selectedAnswer && currentQuestion.correctAnswerIds.includes(selectedAnswer) ? (
-                <Check className="w-16 h-16 text-white" />
-              ) : (
-                <X className="w-16 h-16 text-white" />
-              )}
-            </div>
+        <AnswerFeedback
+          isCorrect={lastAnswerCorrect}
+          questionScore={questionScore}
+          totalScore={score}
+          streakCount={answerStreak}
+          onComplete={() => {}}
+        />
+      )}
 
-            <h1 className="text-4xl font-bold mb-4">
-              {selectedAnswer && currentQuestion.correctAnswerIds.includes(selectedAnswer) 
-                ? 'Correct!' : selectedAnswer ? 'Incorrect!' : 'Time\'s up!'}
-            </h1>
-
-            {questionScore > 0 && (
-              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 mb-6">
-                <div className="flex items-center justify-center space-x-2 mb-2">
-                  <Zap className="w-6 h-6 text-yellow-400" />
-                  <span className="text-2xl font-bold">+{questionScore}</span>
-                </div>
-                <p className="text-sm opacity-90">Points earned this round</p>
-              </div>
-            )}
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-              <p className="text-lg font-semibold">Total Score: {score}</p>
-              <p className="text-sm opacity-90">Current Rank: #{rank}</p>
-            </div>
-          </div>
-        </div>
+      {gamePhase === 'timeup' && (
+        <TimesUpScreen
+          questionNumber={currentQuestionIndex + 1}
+          playerName={nickname}
+          totalScore={score}
+          rank={rank}
+          onComplete={() => {}}
+        />
       )}
 
       {gamePhase === 'results' && (
