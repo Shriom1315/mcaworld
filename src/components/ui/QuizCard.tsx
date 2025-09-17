@@ -1,7 +1,7 @@
 'use client'
 
-import React from 'react'
-import { Play, Users, Clock, Trophy, Heart, Share2, Edit } from 'lucide-react'
+import React, { useState } from 'react'
+import { Play, Users, Clock, Trophy, Heart, Share2, Edit, Star, Zap, Target } from 'lucide-react'
 
 interface QuizCardProps {
   quiz: {
@@ -19,389 +19,605 @@ interface QuizCardProps {
 
 const QuizCard = ({ quiz, onPlay, onEdit }: QuizCardProps) => {
   const questionCount = quiz.questions?.length || 0
-  const difficultyColors = ['#26890C', '#FFA602', '#E21B3C'] // Easy, Medium, Hard
-  const difficulty = questionCount <= 5 ? 0 : questionCount <= 10 ? 1 : 2
-  const difficultyLabels = ['Easy', 'Medium', 'Hard']
-
+  const [isHovered, setIsHovered] = useState(false)
+  const [isFavorited, setIsFavorited] = useState(false)
+  
+  // Calculate difficulty and stats
+  const difficulty = questionCount <= 5 ? 'Easy' : questionCount <= 10 ? 'Medium' : 'Hard'
+  const difficultyColor = questionCount <= 5 ? '#00D4AA' : questionCount <= 10 ? '#FFB800' : '#FF4757'
+  const estimatedTime = Math.ceil(questionCount * 1.5) // 1.5 minutes per question
+  const maxScore = questionCount * 100
+  
   return (
-    <div className="card">
-      <div className="image-container">
-        {/* Quiz Brain SVG */}
-        <svg viewBox="0 0 240 240" className="svg">
-          <defs>
-            <radialGradient gradientUnits="objectBoundingBox" r="1.2" cy="0.5" cx="0.5" id="brain-gradient">
-              <stop stopColor="#46178F" offset={0} />
-              <stop stopColor="#1368CE" offset={0.5} />
-              <stop stopColor="#26890C" offset={1} />
-            </radialGradient>
-          </defs>
-          <rect fill="url(#brain-gradient)" width="240" height="240" rx="16" />
-          
-          {/* Brain illustration */}
-          <g transform="translate(60, 60)">
-            {/* Left brain hemisphere */}
-            <path fill="rgba(255,255,255,0.9)" d="M20 40 C20 20, 40 10, 60 40 L60 100 C40 110, 20 100, 20 40 Z" />
-            {/* Right brain hemisphere */}
-            <path fill="rgba(255,255,255,0.9)" d="M60 40 C80 10, 100 20, 100 40 C100 100, 80 110, 60 100 Z" />
-            
-            {/* Brain details */}
-            <path fill="rgba(70,23,143,0.3)" d="M30 50 Q50 45, 50 60 Q40 70, 30 65 Z" />
-            <path fill="rgba(70,23,143,0.3)" d="M70 50 Q90 55, 90 65 Q80 70, 70 60 Z" />
-            
-            {/* Floating question marks */}
-            <text x="35" y="25" fill="#FFA602" fontSize="18" fontWeight="bold" className="question-float">?</text>
-            <text x="65" y="20" fill="#FFA602" fontSize="16" fontWeight="bold" className="question-float-2">?</text>
-            <text x="85" y="30" fill="#FFA602" fontSize="14" fontWeight="bold" className="question-float-3">?</text>
-          </g>
-        </svg>
-        
-        <div className="difficulty-price">{questionCount} Questions</div>
-      </div>
-      
-      <label className="favorite">
-        <input type="checkbox" />
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#000000">
-          <path d="M12 20a1 1 0 0 1-.437-.1C11.214 19.73 3 15.671 3 9a5 5 0 0 1 8.535-3.536l.465.465.465-.465A5 5 0 0 1 21 9c0 6.646-8.212 10.728-8.562 10.9A1 1 0 0 1 12 20z" />
-        </svg>
-      </label>
-      
-      <div className="content">
-        <div className="brand">BITWISE</div>
-        <div className="product-name">{quiz.title}</div>
-        
-        <div className="color-size-container">
-          <div className="colors">
-            Type
-            <ul className="colors-container">
-              <li className="color active">
-                <div className="color-dot" style={{ backgroundColor: '#46178F' }}></div>
-                <span className="color-name">Multiple Choice</span>
-              </li>
-              <li className="color">
-                <div className="color-dot" style={{ backgroundColor: '#1368CE' }}></div>
-                <span className="color-name">True/False</span>
-              </li>
-              <li className="color">
-                <div className="color-dot" style={{ backgroundColor: '#26890C' }}></div>
-                <span className="color-name">Quiz</span>
-              </li>
-            </ul>
+    <div 
+      className="game-card"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Glassmorphism Header */}
+      <div className="card-header">
+        <div className="header-gradient">
+          <div className="quiz-icon-container">
+            <div className="quiz-icon">
+              <Target className="main-icon" />
+              <div className="pulse-ring"></div>
+            </div>
           </div>
           
-          <div className="sizes">
-            Difficulty
-            <ul className="size-container">
-              <li className="size">
-                <label className="size-radio">
-                  <input name={`difficulty-${quiz.id}`} value="easy" type="radio" checked={difficulty === 0} readOnly />
-                  <span className="name">Easy</span>
-                </label>
-              </li>
-              <li className="size">
-                <label className="size-radio">
-                  <input name={`difficulty-${quiz.id}`} value="medium" type="radio" checked={difficulty === 1} readOnly />
-                  <span className="name">Med</span>
-                </label>
-              </li>
-              <li className="size">
-                <label className="size-radio">
-                  <input name={`difficulty-${quiz.id}`} value="hard" type="radio" checked={difficulty === 2} readOnly />
-                  <span className="name">Hard</span>
-                </label>
-              </li>
-            </ul>
+          <div className="question-count">
+            <span className="count-number">{questionCount}</span>
+            <span className="count-label">Questions</span>
           </div>
-        </div>
-        
-        <div className="rating">
-          <svg viewBox="0 0 99.498 16.286" xmlns="http://www.w3.org/2000/svg" className="svg four-star-svg">
-            <path fill="#fc0" transform="translate(-0.001 -1.047)" d="M9.357,1.558,11.282,5.45a.919.919,0,0,0,.692.5l4.3.624a.916.916,0,0,1,.509,1.564l-3.115,3.029a.916.916,0,0,0-.264.812l.735,4.278a.919.919,0,0,1-1.334.967l-3.85-2.02a.922.922,0,0,0-.855,0l-3.85,2.02a.919.919,0,0,1-1.334-.967l.735-4.278a.916.916,0,0,0-.264-.812L.279,8.14A.916.916,0,0,1,.789,6.576l4.3-.624a.919.919,0,0,0,.692-.5L7.71,1.558A.92.92,0,0,1,9.357,1.558Z" />
-            <path fill="#fc0" transform="translate(20.607 -1.047)" d="M9.357,1.558,11.282,5.45a.919.919,0,0,0,.692.5l4.3.624a.916.916,0,0,1,.509,1.564l-3.115,3.029a.916.916,0,0,0-.264.812l.735,4.278a.919.919,0,0,1-1.334.967l-3.85-2.02a.922.922,0,0,0-.855,0l-3.85,2.02a.919.919,0,0,1-1.334-.967l.735-4.278a.916.916,0,0,0-.264-.812L.279,8.14A.916.916,0,0,1,.789,6.576l4.3-.624a.919.919,0,0,0,.692-.5L7.71,1.558A.92.92,0,0,1,9.357,1.558Z" />
-            <path fill="#fc0" transform="translate(41.215 -1.047)" d="M9.357,1.558,11.282,5.45a.919.919,0,0,0,.692.5l4.3.624a.916.916,0,0,1,.509,1.564l-3.115,3.029a.916.916,0,0,0-.264.812l.735,4.278a.919.919,0,0,1-1.334.967l-3.85-2.02a.922.922,0,0,0-.855,0l-3.85,2.02a.919.919,0,0,1-1.334-.967l.735-4.278a.916.916,0,0,0-.264-.812L.279,8.14A.916.916,0,0,1,.789,6.576l4.3-.624a.919.919,0,0,0,.692-.5L7.71,1.558A.92.92,0,0,1,9.357,1.558Z" />
-            <path fill="#fc0" transform="translate(61.823 -1.047)" d="M9.357,1.558,11.282,5.45a.919.919,0,0,0,.692.5l4.3.624a.916.916,0,0,1,.509,1.564l-3.115,3.029a.916.916,0,0,0-.264.812l.735,4.278a.919.919,0,0,1-1.334.967l-3.85-2.02a.922.922,0,0,0-.855,0l-3.85,2.02a.919.919,0,0,1-1.334-.967l.735-4.278a.916.916,0,0,0-.264-.812L.279,8.14A.916.916,0,0,1,.789,6.576l4.3-.624a.919.919,0,0,0,.692-.5L7.71,1.558A.92.92,0,0,1,9.357,1.558Z" />
-            <path fill="#e9e9e9" transform="translate(82.431 -1.047)" d="M9.357,1.558,11.282,5.45a.919.919,0,0,0,.692.5l4.3.624a.916.916,0,0,1,.509,1.564l-3.115,3.029a.916.916,0,0,0-.264.812l.735,4.278a.919.919,0,0,1-1.334.967l-3.85-2.02a.922.922,0,0,0-.855,0l-3.85,2.02a.919.919,0,0,1-1.334-.967l.735-4.278a.916.916,0,0,0-.264-.812L.279,8.14A.916.916,0,0,1,.789,6.576l4.3-.624a.919.919,0,0,0,.692-.5L7.71,1.558A.92.92,0,0,1,9.357,1.558Z" />
-          </svg>
-          ({questionCount * 250})
+          
+          <button 
+            className="favorite-btn"
+            onClick={() => setIsFavorited(!isFavorited)}
+          >
+            <Heart className={`heart-icon ${isFavorited ? 'favorited' : ''}`} />
+          </button>
         </div>
       </div>
       
-      <div className="button-container">
-        <button className="buy-button button" onClick={() => onPlay(quiz.id)}>
-          Play Now
+      {/* Card Content */}
+      <div className="card-content">
+        <div className="quiz-meta">
+          <span className="brand-tag">BITWISE</span>
+          <div className="difficulty-badge" style={{ backgroundColor: difficultyColor }}>
+            {difficulty}
+          </div>
+        </div>
+        
+        <h3 className="quiz-title">{quiz.title}</h3>
+        
+        {/* Stats Grid */}
+        <div className="stats-grid">
+          <div className="stat-item">
+            <Clock className="stat-icon" />
+            <span className="stat-value">{estimatedTime}m</span>
+            <span className="stat-label">Duration</span>
+          </div>
+          <div className="stat-item">
+            <Trophy className="stat-icon" />
+            <span className="stat-value">{maxScore}</span>
+            <span className="stat-label">Max Score</span>
+          </div>
+          <div className="stat-item">
+            <Users className="stat-icon" />
+            <span className="stat-value">{questionCount * 12}</span>
+            <span className="stat-label">Players</span>
+          </div>
+        </div>
+        
+        {/* Progress Indicators */}
+        <div className="progress-section">
+          <div className="difficulty-progress">
+            <span className="progress-label">Difficulty Level</span>
+            <div className="progress-bar">
+              <div 
+                className="progress-fill"
+                style={{ 
+                  width: questionCount <= 5 ? '33%' : questionCount <= 10 ? '66%' : '100%',
+                  backgroundColor: difficultyColor 
+                }}
+              ></div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Rating */}
+        <div className="rating-section">
+          <div className="stars">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} className={`star ${i < 4 ? 'filled' : ''}`} />
+            ))}
+          </div>
+          <span className="rating-text">4.0 ({questionCount * 47} reviews)</span>
+        </div>
+      </div>
+      
+      {/* Action Buttons */}
+      <div className="card-actions">
+        <button 
+          className="play-btn primary-btn"
+          onClick={() => onPlay(quiz.id)}
+        >
+          <Play className="btn-icon" />
+          <span>Play Now</span>
+          <div className="btn-glow"></div>
         </button>
-        <button className="cart-button button" onClick={() => onEdit?.(quiz.id)}>
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor"/>
-          </svg>
+        
+        <button 
+          className="edit-btn secondary-btn"
+          onClick={() => onEdit?.(quiz.id)}
+        >
+          <Edit className="btn-icon" />
         </button>
+        
+        <button className="share-btn secondary-btn">
+          <Share2 className="btn-icon" />
+        </button>
+      </div>
+      
+      {/* Hover Effect Overlay */}
+      <div className={`hover-overlay ${isHovered ? 'active' : ''}`}>
+        <div className="hover-content">
+          <Zap className="lightning-icon" />
+          <span>Ready to Challenge?</span>
+        </div>
       </div>
 
       <style jsx>{`
-        .card {
-          --accent-color: #ffd426;
+        .game-card {
           position: relative;
-          width: 240px;
-          background: white;
-          border-radius: 1rem;
-          padding: 0.3rem;
-          box-shadow: rgba(100, 100, 111, 0.2) 0px 50px 30px -20px;
-          transition: all 0.5s ease-in-out;
-        }
-
-        .card .image-container {
-          position: relative;
-          width: 100%;
-          height: 130px;
-          border-radius: 0.7rem;
-          border-top-right-radius: 4rem;
-          margin-bottom: 1rem;
-        }
-
-        .card .image-container .svg {
-          height: 100%;
-          width: 100%;
-          border-radius: inherit;
-        }
-
-        .card .image-container .difficulty-price {
-          position: absolute;
-          right: 0.7rem;
-          bottom: -1rem;
-          background: white;
-          color: var(--accent-color);
-          font-weight: 900;
-          font-size: 0.9rem;
-          padding: 0.5rem;
-          border-radius: 1rem 1rem 2rem 2rem;
-          box-shadow: rgba(100, 100, 111, 0.2) 0px 0px 15px 0px;
-        }
-
-        .card .favorite {
-          position: absolute;
-          width: 19px;
-          height: 19px;
-          top: 5px;
-          right: 5px;
+          width: 320px;
+          height: 420px;
+          background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(255,255,255,0.2);
+          border-radius: 24px;
+          padding: 0;
+          overflow: hidden;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           cursor: pointer;
+          box-shadow: 
+            0 8px 32px rgba(0,0,0,0.1),
+            0 2px 8px rgba(0,0,0,0.05),
+            inset 0 1px 0 rgba(255,255,255,0.1);
         }
 
-        .card .favorite input {
+        .game-card:hover {
+          transform: translateY(-8px) scale(1.02);
+          box-shadow: 
+            0 20px 40px rgba(0,0,0,0.15),
+            0 8px 16px rgba(0,0,0,0.1),
+            inset 0 1px 0 rgba(255,255,255,0.2);
+          border-color: rgba(255,255,255,0.3);
+        }
+
+        .card-header {
+          position: relative;
+          height: 120px;
+          overflow: hidden;
+        }
+
+        .header-gradient {
           position: absolute;
-          opacity: 0;
-          width: 0;
-          height: 0;
-        }
-
-        .card .favorite input:checked ~ svg {
-          animation: bouncing 0.5s;
-          fill: rgb(255, 95, 95);
-          filter: drop-shadow(0px 3px 1px rgba(53, 53, 53, 0.14));
-        }
-
-        .card .favorite svg {
-          fill: #a8a8a8;
-        }
-
-        .card .content {
-          padding: 0px 0.8rem;
-          margin-bottom: 1rem;
-        }
-
-        .card .content .brand {
-          font-weight: 900;
-          color: #a6a6a6;
-        }
-
-        .card .content .product-name {
-          font-weight: 700;
-          color: #666666;
-          font-size: 0.7rem;
-          margin-bottom: 1rem;
-        }
-
-        .card .content .color-size-container {
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg, 
+            #667eea 0%, 
+            #764ba2 25%,
+            #667eea 50%,
+            #f093fb 75%,
+            #f5576c 100%
+          );
+          background-size: 400% 400%;
+          animation: gradientShift 8s ease infinite;
           display: flex;
+          align-items: center;
           justify-content: space-between;
-          text-transform: uppercase;
-          font-size: 0.7rem;
-          font-weight: 700;
-          color: #a8a8a8;
-          gap: 2rem;
-          margin-bottom: 1.5rem;
+          padding: 20px;
         }
 
-        .card .content .color-size-container > * {
+        .quiz-icon-container {
+          position: relative;
+        }
+
+        .quiz-icon {
+          position: relative;
+          width: 60px;
+          height: 60px;
+          background: rgba(255,255,255,0.2);
+          backdrop-filter: blur(10px);
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .main-icon {
+          width: 32px;
+          height: 32px;
+          color: white;
+          z-index: 2;
+        }
+
+        .pulse-ring {
+          position: absolute;
+          top: -10px;
+          left: -10px;
+          right: -10px;
+          bottom: -10px;
+          border: 2px solid rgba(255,255,255,0.3);
+          border-radius: 20px;
+          animation: pulse 2s ease-in-out infinite;
+        }
+
+        .question-count {
+          text-align: center;
+          color: white;
+        }
+
+        .count-number {
+          display: block;
+          font-size: 24px;
+          font-weight: 800;
+          line-height: 1;
+          text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .count-label {
+          display: block;
+          font-size: 12px;
+          font-weight: 500;
+          opacity: 0.9;
+          margin-top: 4px;
+        }
+
+        .favorite-btn {
+          background: rgba(255,255,255,0.2);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255,255,255,0.3);
+          border-radius: 12px;
+          width: 48px;
+          height: 48px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .favorite-btn:hover {
+          background: rgba(255,255,255,0.3);
+          transform: scale(1.1);
+        }
+
+        .heart-icon {
+          width: 20px;
+          height: 20px;
+          color: white;
+          transition: all 0.3s ease;
+        }
+
+        .heart-icon.favorited {
+          color: #ff4757;
+          fill: #ff4757;
+          animation: heartBeat 0.6s ease;
+        }
+
+        .card-content {
+          padding: 24px;
           flex: 1;
         }
 
-        .card .content .color-size-container .colors .colors-container {
-          list-style-type: none;
+        .quiz-meta {
           display: flex;
-          flex-wrap: wrap;
-          align-items: center;
           justify-content: space-between;
-          gap: 0.3rem;
-          font-size: 0.5rem;
-          margin-top: 0.2rem;
+          align-items: center;
+          margin-bottom: 12px;
         }
 
-        .card .content .color-size-container .colors .colors-container .color {
-          height: 14px;
-          position: relative;
+        .brand-tag {
+          font-size: 11px;
+          font-weight: 700;
+          color: #8b5cf6;
+          background: rgba(139, 92, 246, 0.1);
+          padding: 4px 10px;
+          border-radius: 20px;
+          border: 1px solid rgba(139, 92, 246, 0.2);
         }
 
-        .card .content .color-size-container .colors .colors-container .color:hover .color-name {
+        .difficulty-badge {
+          font-size: 11px;
+          font-weight: 600;
+          color: white;
+          padding: 4px 10px;
+          border-radius: 12px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .quiz-title {
+          font-size: 18px;
+          font-weight: 700;
+          color: #2d3748;
+          margin-bottom: 20px;
+          line-height: 1.4;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+          margin-bottom: 20px;
+        }
+
+        .stat-item {
+          text-align: center;
+          background: rgba(247, 250, 252, 0.8);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(226, 232, 240, 0.5);
+          border-radius: 12px;
+          padding: 12px 8px;
+          transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+          background: rgba(255, 255, 255, 0.9);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .stat-icon {
+          width: 16px;
+          height: 16px;
+          color: #667eea;
+          margin-bottom: 4px;
+        }
+
+        .stat-value {
+          display: block;
+          font-size: 14px;
+          font-weight: 700;
+          color: #2d3748;
+          line-height: 1;
+        }
+
+        .stat-label {
+          display: block;
+          font-size: 10px;
+          font-weight: 500;
+          color: #718096;
+          margin-top: 2px;
+        }
+
+        .progress-section {
+          margin-bottom: 20px;
+        }
+
+        .progress-label {
+          font-size: 12px;
+          font-weight: 600;
+          color: #4a5568;
+          margin-bottom: 8px;
           display: block;
         }
 
-        .card .content .color-size-container .colors .colors-container .color .color-dot {
-          display: inline-block;
-          height: 100%;
-          aspect-ratio: 1;
-          border: 3px solid black;
-          border-radius: 50%;
+        .progress-bar {
+          height: 6px;
+          background: rgba(226, 232, 240, 0.8);
+          border-radius: 3px;
+          overflow: hidden;
+          position: relative;
         }
 
-        .card .content .color-size-container .colors .colors-container .color .color-name {
-          display: none;
+        .progress-fill {
+          height: 100%;
+          border-radius: 3px;
+          transition: all 0.6s ease;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .progress-fill::after {
+          content: '';
           position: absolute;
-          bottom: 125%;
-          left: 50%;
-          transform: translateX(-50%);
-          z-index: 99;
-          background: black;
-          color: white;
-          padding: 0.2rem 1rem;
-          border-radius: 1rem;
-          text-align: center;
-        }
-
-        .card .content .color-size-container .colors .colors-container .active {
-          border-color: black;
-        }
-
-        .card .content .color-size-container .sizes .size-container {
-          list-style-type: none;
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          justify-content: space-between;
-          margin-top: 0.2rem;
-        }
-
-        .card .content .color-size-container .sizes .size-container .size {
-          height: 14px;
-        }
-
-        .card .content .color-size-container .sizes .size-container .size .size-radio {
-          cursor: pointer;
-        }
-
-        .card .content .color-size-container .sizes .size-container .size .size-radio input {
-          display: none;
-        }
-
-        .card .content .color-size-container .sizes .size-container .size .size-radio input:checked ~ .name {
-          background: var(--accent-color);
-          border-radius: 2rem 2rem 1.5rem 1.5rem;
-          color: white;
-        }
-
-        .card .content .color-size-container .sizes .size-container .size .size-radio .name {
-          display: grid;
-          place-content: center;
+          top: 0;
+          left: -100%;
+          width: 100%;
           height: 100%;
-          aspect-ratio: 1.2/1;
-          text-decoration: none;
-          color: #484848;
-          font-size: 0.5rem;
-          text-align: center;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+          animation: shimmer 2s infinite;
         }
 
-        .card .content .rating {
-          color: #a8a8a8;
-          font-size: 0.6rem;
-          font-weight: 700;
+        .rating-section {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: 8px;
+          margin-bottom: 20px;
         }
 
-        .card .content .rating svg {
-          height: 12px;
-        }
-
-        .card .button-container {
+        .stars {
           display: flex;
-          gap: 0.3rem;
+          gap: 2px;
         }
 
-        .card .button-container .button {
-          border-radius: 1.4rem 1.4rem 0.7rem 0.7rem;
-          border: none;
-          padding: 0.5rem 0;
-          background: var(--accent-color);
+        .star {
+          width: 14px;
+          height: 14px;
+          color: #e2e8f0;
+          transition: all 0.2s ease;
+        }
+
+        .star.filled {
+          color: #fbbf24;
+          fill: currentColor;
+        }
+
+        .rating-text {
+          font-size: 12px;
+          font-weight: 500;
+          color: #718096;
+        }
+
+        .card-actions {
+          padding: 0 24px 24px;
+          display: flex;
+          gap: 12px;
+          align-items: center;
+        }
+
+        .primary-btn {
+          flex: 1;
+          position: relative;
+          background: linear-gradient(135deg, #667eea, #764ba2);
           color: white;
-          font-weight: 900;
+          border: none;
+          border-radius: 16px;
+          padding: 14px 20px;
+          font-size: 14px;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
           cursor: pointer;
+          transition: all 0.3s ease;
+          overflow: hidden;
         }
 
-        .card .button-container .button:hover {
-          background: orangered;
+        .primary-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
         }
 
-        .card .button-container .buy-button {
-          flex: auto;
+        .btn-glow {
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+          transition: all 0.6s ease;
         }
 
-        .card .button-container .cart-button {
-          display: grid;
-          place-content: center;
-          width: 50px;
+        .primary-btn:hover .btn-glow {
+          left: 100%;
         }
 
-        .card .button-container .cart-button svg {
-          width: 15px;
-          fill: white;
+        .secondary-btn {
+          width: 48px;
+          height: 48px;
+          background: rgba(247, 250, 252, 0.8);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(226, 232, 240, 0.5);
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.3s ease;
         }
 
-        .card:hover {
-          transform: scale(1.03);
+        .secondary-btn:hover {
+          background: rgba(255, 255, 255, 0.9);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        .question-float {
-          animation: float 2s ease-in-out infinite;
+        .btn-icon {
+          width: 18px;
+          height: 18px;
+          color: #4a5568;
         }
 
-        .question-float-2 {
-          animation: float 2s ease-in-out infinite 0.3s;
+        .primary-btn .btn-icon {
+          color: white;
         }
 
-        .question-float-3 {
-          animation: float 2s ease-in-out infinite 0.6s;
+        .hover-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9));
+          backdrop-filter: blur(20px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: all 0.4s ease;
+          border-radius: 24px;
         }
 
-        @keyframes bouncing {
-          from, to {
-            transform: scale(1, 1);
+        .hover-overlay.active {
+          opacity: 1;
+        }
+
+        .hover-content {
+          text-align: center;
+          color: white;
+          transform: translateY(20px);
+          transition: all 0.4s ease;
+        }
+
+        .hover-overlay.active .hover-content {
+          transform: translateY(0);
+        }
+
+        .lightning-icon {
+          width: 48px;
+          height: 48px;
+          margin-bottom: 12px;
+          animation: bounce 2s infinite;
+        }
+
+        .hover-content span {
+          font-size: 18px;
+          font-weight: 600;
+        }
+
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
+        @keyframes pulse {
+          0% { transform: scale(1); opacity: 0.8; }
+          50% { transform: scale(1.1); opacity: 0.4; }
+          100% { transform: scale(1); opacity: 0.8; }
+        }
+
+        @keyframes heartBeat {
+          0% { transform: scale(1); }
+          25% { transform: scale(1.2); }
+          50% { transform: scale(1.4); }
+          75% { transform: scale(1.2); }
+          100% { transform: scale(1); }
+        }
+
+        @keyframes shimmer {
+          0% { left: -100%; }
+          100% { left: 100%; }
+        }
+
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+          .game-card {
+            background: linear-gradient(145deg, rgba(30,41,59,0.8), rgba(15,23,42,0.6));
+            border-color: rgba(100,116,139,0.3);
           }
-          25% {
-            transform: scale(1.5, 2.1);
+          
+          .quiz-title {
+            color: #e2e8f0;
           }
-          50% {
-            transform: scale(2.1, 1.5);
+          
+          .stat-item {
+            background: rgba(30,41,59,0.6);
+            border-color: rgba(100,116,139,0.3);
           }
-          75% {
-            transform: scale(1.5, 2.05);
+          
+          .secondary-btn {
+            background: rgba(30,41,59,0.6);
+            border-color: rgba(100,116,139,0.3);
           }
-        }
-
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-5px);
+          
+          .btn-icon {
+            color: #94a3b8;
           }
         }
       `}</style>
