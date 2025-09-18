@@ -2,10 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Navbar } from '@/components/layout/navbar'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Plus, Save, Eye, Settings, Clock, Trophy, Image, Video, Trash2, ChevronUp, ChevronDown } from 'lucide-react'
+import { Plus, Save, Eye, Settings, Clock, Trophy, Image, Video, Trash2, ChevronUp, ChevronDown, Monitor, FileText, User } from 'lucide-react'
 import { Question, Answer } from '@/types'
 import { collection, addDoc, Timestamp } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -161,64 +158,108 @@ export default function CreateQuizPage() {
 
   const currentQuestion = currentQuestionIndex >= 0 ? questions[currentQuestionIndex] : null
 
-  const answerColors = ['bg-kahoot-red', 'bg-kahoot-blue', 'bg-kahoot-yellow', 'bg-kahoot-green']
-  const answerSymbols = ['▲', '♦', '●', '■']
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar user={mockUser} />
-      
-      <div className="flex h-[calc(100vh-64px)]">
-        {/* Sidebar - Questions List */}
-        <div className="w-80 bg-white border-r overflow-y-auto">
-          <div className="p-6 border-b">
-            <div className="space-y-4">
-              <Input
+    <div className="min-h-screen">
+      {/* Retro OS Desktop Taskbar */}
+      <div className="bg-gray-300 border-b-2 border-gray-600 px-2 py-1 flex items-center justify-between text-sm font-mono">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 bg-gray-200 border border-gray-400 px-2 py-1">
+            <FileText className="w-4 h-4" />
+            <span>QuizCreator.exe</span>
+          </div>
+          <div className="text-xs text-gray-600">Creating: {quizTitle}</div>
+        </div>
+        
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 text-xs">
+            <User className="w-3 h-3" />
+            <span>{mockUser.username}</span>
+          </div>
+          <div className="bg-gray-200 border border-gray-400 px-2 py-1 text-xs">
+            12:34 PM
+          </div>
+        </div>
+      </div>
+
+      {/* Main Desktop Area */}
+      <div className="h-[calc(100vh-32px)] flex">
+        {/* Left Sidebar - Quiz Structure */}
+        <div className="w-80 retro-window m-2">
+          <div className="retro-window-header">
+            <span>Quiz Structure</span>
+            <div className="retro-window-controls">
+              <div className="retro-window-control minimize">_</div>
+              <div className="retro-window-control maximize">□</div>
+            </div>
+          </div>
+          <div className="p-4 bg-white h-full overflow-y-auto">
+            {/* Quiz Details */}
+            <div className="mb-6 p-3 bg-gray-100 border border-gray-300">
+              <label className="block font-mono text-xs mb-2 text-gray-700">QUIZ TITLE:</label>
+              <input
                 value={quizTitle}
                 onChange={(e) => setQuizTitle(e.target.value)}
-                className="font-bold text-lg"
-                placeholder="Quiz title..."
+                className="w-full px-2 py-1 border border-gray-400 font-mono text-sm focus:outline-none focus:border-blue-500"
+                placeholder="Enter quiz title..."
               />
+              
+              <label className="block font-mono text-xs mb-2 mt-3 text-gray-700">DESCRIPTION:</label>
               <textarea
                 value={quizDescription}
                 onChange={(e) => setQuizDescription(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none h-20 text-sm"
-                placeholder="Add a description..."
+                className="w-full px-2 py-1 border border-gray-400 font-mono text-xs resize-none h-16 focus:outline-none focus:border-blue-500"
+                placeholder="Add description..."
               />
             </div>
-          </div>
 
-          <div className="p-4">
-            <Button onClick={addQuestion} className="w-full mb-4">
-              <Plus className="w-4 h-4 mr-2" />
-              Add question
-            </Button>
+            {/* Add Question Button */}
+            <button 
+              onClick={addQuestion} 
+              className="w-full mb-4 px-3 py-2 bg-green-400 hover:bg-green-300 border-2 border-gray-600 font-mono text-sm font-bold"
+              style={{boxShadow: '2px 2px 4px rgba(0,0,0,0.3)'}}
+            >
+              [+] ADD QUESTION
+            </button>
 
+            {/* Questions List */}
             <div className="space-y-2">
               {questions.map((question, index) => (
                 <div
                   key={question.id}
-                  className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                  className={`p-3 border-2 cursor-pointer transition-all ${
                     currentQuestionIndex === index 
-                      ? 'border-kahoot-purple bg-kahoot-purple/5' 
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-blue-500 bg-blue-100' 
+                      : 'border-gray-400 bg-gray-50 hover:bg-gray-100'
                   }`}
                   onClick={() => setCurrentQuestionIndex(index)}
+                  style={{boxShadow: '1px 1px 2px rgba(0,0,0,0.2)'}}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-sm">
-                      Question {index + 1}
-                    </span>
-                    <div className="flex items-center space-x-1">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-mono text-xs text-gray-600 mb-1">
+                        QUESTION {index + 1}
+                      </div>
+                      <div className="font-mono text-sm truncate">
+                        {question.question || 'Untitled Question'}
+                      </div>
+                      <div className="flex items-center space-x-2 mt-1 text-xs font-mono text-gray-500">
+                        <Clock className="w-3 h-3" />
+                        <span>{question.timeLimit}s</span>
+                        <Trophy className="w-3 h-3" />
+                        <span>{question.points}pts</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col space-y-1 ml-2">
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
                           moveQuestion(index, 'up')
                         }}
                         disabled={index === 0}
-                        className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                        className="w-6 h-6 bg-gray-300 border border-gray-500 flex items-center justify-center text-xs disabled:opacity-50"
                       >
-                        <ChevronUp className="w-4 h-4" />
+                        ▲
                       </button>
                       <button
                         onClick={(e) => {
@@ -226,186 +267,217 @@ export default function CreateQuizPage() {
                           moveQuestion(index, 'down')
                         }}
                         disabled={index === questions.length - 1}
-                        className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                        className="w-6 h-6 bg-gray-300 border border-gray-500 flex items-center justify-center text-xs disabled:opacity-50"
                       >
-                        <ChevronDown className="w-4 h-4" />
+                        ▼
                       </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
                           deleteQuestion(index)
                         }}
-                        className="p-1 text-gray-400 hover:text-red-500"
+                        className="w-6 h-6 bg-red-400 border border-gray-500 flex items-center justify-center text-xs hover:bg-red-300"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        ×
                       </button>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1 truncate">
-                    {question.question || 'Enter your question...'}
-                  </p>
                 </div>
               ))}
+            </div>
+            
+            {/* Quiz Stats */}
+            <div className="mt-6 p-3 bg-yellow-100 border border-yellow-400">
+              <div className="font-mono text-xs mb-2 text-gray-700">QUIZ STATISTICS:</div>
+              <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                <div>Questions: {questions.length}</div>
+                <div>Total Time: {questions.reduce((sum, q) => sum + q.timeLimit, 0)}s</div>
+                <div>Total Points: {questions.reduce((sum, q) => sum + q.points, 0)}</div>
+                <div>Avg. Time: {questions.length > 0 ? Math.round(questions.reduce((sum, q) => sum + q.timeLimit, 0) / questions.length) : 0}s</div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col">
-          {/* Toolbar */}
-          <div className="bg-white border-b px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                {questions.length} question{questions.length !== 1 ? 's' : ''}
-              </span>
-              {currentQuestion && (
-                <span className="text-sm text-gray-600">
-                  Question {currentQuestionIndex + 1} of {questions.length}
-                </span>
-              )}
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              <Button variant="outline" onClick={() => setIsPreviewMode(!isPreviewMode)}>
-                <Eye className="w-4 h-4 mr-2" />
-                {isPreviewMode ? 'Edit' : 'Preview'}
-              </Button>
-              <Button onClick={saveQuiz}>
-                <Save className="w-4 h-4 mr-2" />
-                Save
-              </Button>
+        {/* Main Question Editor Window */}
+        <div className="flex-1 retro-window m-2">
+          <div className="retro-window-header">
+            <span>{currentQuestion ? `Question ${currentQuestionIndex + 1} Editor` : 'Question Editor'}</span>
+            <div className="retro-window-controls">
+              <button 
+                onClick={() => setIsPreviewMode(!isPreviewMode)}
+                className="retro-window-control minimize"
+                title={isPreviewMode ? 'Edit Mode' : 'Preview Mode'}
+              >
+                {isPreviewMode ? 'E' : 'P'}
+              </button>
+              <button 
+                onClick={saveQuiz}
+                className="retro-window-control maximize"
+                title="Save Quiz"
+              >
+                S
+              </button>
             </div>
           </div>
-
-          {/* Question Editor */}
-          <div className="flex-1 p-6 overflow-y-auto">
+          
+          <div className="bg-white h-full overflow-y-auto">
             {!currentQuestion ? (
               <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Plus className="w-12 h-12 text-gray-400" />
+                <div className="retro-window p-8 m-8">
+                  <div className="retro-window-header">
+                    <span>Getting Started</span>
                   </div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-2">Add your first question</h2>
-                  <p className="text-gray-600 mb-6">Create engaging questions to test your students&apos; knowledge</p>
-                  <Button onClick={addQuestion}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add question
-                  </Button>
+                  <div className="p-6 text-center bg-white">
+                    <div className="w-16 h-16 bg-yellow-200 border-2 border-gray-600 flex items-center justify-center mx-auto mb-4 font-mono text-2xl">
+                      ?
+                    </div>
+                    <h2 className="font-mono text-lg font-bold text-gray-900 mb-2">CREATE YOUR FIRST QUESTION</h2>
+                    <p className="font-mono text-sm text-gray-600 mb-6">Click the button below to add your first quiz question</p>
+                    <button 
+                      onClick={addQuestion}
+                      className="px-6 py-2 bg-green-400 hover:bg-green-300 border-2 border-gray-600 font-mono font-bold"
+                      style={{boxShadow: '2px 2px 4px rgba(0,0,0,0.3)'}}
+                    >
+                      [+] ADD QUESTION
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (
-              <div className="max-w-4xl mx-auto space-y-8">
-                {/* Question Input */}
-                <div className="bg-white rounded-xl p-8 shadow-sm">
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Question
-                    </label>
+              <div className="p-6 space-y-6">
+                {/* Question Input Window */}
+                <div className="retro-window">
+                  <div className="retro-window-header">
+                    <span>Question Text - Q{currentQuestionIndex + 1}</span>
+                  </div>
+                  <div className="p-4 bg-white">
+                    <label className="block font-mono text-xs mb-2 text-gray-700">ENTER QUESTION:</label>
                     <textarea
                       value={currentQuestion.question}
                       onChange={(e) => updateQuestion(currentQuestionIndex, { question: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none h-24 text-lg font-medium"
-                      placeholder="Enter your question here..."
+                      className="w-full px-3 py-2 border-2 border-gray-400 font-mono text-sm resize-none h-20 focus:outline-none focus:border-blue-500"
+                      placeholder="Type your question here..."
                     />
-                  </div>
-
-                  <div className="flex items-center space-x-4 mb-6">
-                    <button className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                      <Image className="w-5 h-5 mr-2" />
-                      Add image
-                    </button>
-                    <button className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                      <Video className="w-5 h-5 mr-2" />
-                      Add video
-                    </button>
-                  </div>
-
-                  {/* Question Settings */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <Clock className="w-4 h-4 inline mr-1" />
-                        Time limit (seconds)
-                      </label>
-                      <select
-                        value={currentQuestion.timeLimit}
-                        onChange={(e) => updateQuestion(currentQuestionIndex, { timeLimit: parseInt(e.target.value) })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                      >
-                        <option value={10}>10 seconds</option>
-                        <option value={20}>20 seconds</option>
-                        <option value={30}>30 seconds</option>
-                        <option value={60}>1 minute</option>
-                        <option value={90}>90 seconds</option>
-                        <option value={120}>2 minutes</option>
-                      </select>
+                    
+                    <div className="flex items-center space-x-2 mt-3">
+                      <button className="px-3 py-1 bg-gray-300 hover:bg-gray-200 border border-gray-500 font-mono text-xs">
+                        [IMG] Add Image
+                      </button>
+                      <button className="px-3 py-1 bg-gray-300 hover:bg-gray-200 border border-gray-500 font-mono text-xs">
+                        [VID] Add Video
+                      </button>
                     </div>
+                  </div>
+                </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <Trophy className="w-4 h-4 inline mr-1" />
-                        Points
-                      </label>
-                      <select
-                        value={currentQuestion.points}
-                        onChange={(e) => updateQuestion(currentQuestionIndex, { points: parseInt(e.target.value) })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                      >
-                        <option value={500}>500 points</option>
-                        <option value={1000}>1000 points</option>
-                        <option value={1500}>1500 points</option>
-                        <option value={2000}>2000 points</option>
-                      </select>
+                {/* Question Settings */}
+                <div className="retro-window">
+                  <div className="retro-window-header">
+                    <span>Question Settings</span>
+                  </div>
+                  <div className="p-4 bg-white">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block font-mono text-xs mb-2 text-gray-700">TIME LIMIT:</label>
+                        <select
+                          value={currentQuestion.timeLimit}
+                          onChange={(e) => updateQuestion(currentQuestionIndex, { timeLimit: parseInt(e.target.value) })}
+                          className="w-full px-2 py-1 border-2 border-gray-400 font-mono text-sm focus:outline-none focus:border-blue-500"
+                        >
+                          <option value={10}>10 seconds</option>
+                          <option value={20}>20 seconds</option>
+                          <option value={30}>30 seconds</option>
+                          <option value={60}>1 minute</option>
+                          <option value={90}>90 seconds</option>
+                          <option value={120}>2 minutes</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block font-mono text-xs mb-2 text-gray-700">POINTS:</label>
+                        <select
+                          value={currentQuestion.points}
+                          onChange={(e) => updateQuestion(currentQuestionIndex, { points: parseInt(e.target.value) })}
+                          className="w-full px-2 py-1 border-2 border-gray-400 font-mono text-sm focus:outline-none focus:border-blue-500"
+                        >
+                          <option value={500}>500 points</option>
+                          <option value={1000}>1000 points</option>
+                          <option value={1500}>1500 points</option>
+                          <option value={2000}>2000 points</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Answer Options */}
-                <div className="bg-white rounded-xl p-8 shadow-sm">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-6">Answer options</h3>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    {currentQuestion.answers.map((answer, answerIndex) => (
-                      <div
-                        key={answer.id}
-                        className={`relative border-2 rounded-xl p-4 transition-all cursor-pointer ${
-                          answer.isCorrect 
-                            ? 'border-green-500 bg-green-50' 
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        onClick={() => setCorrectAnswer(currentQuestionIndex, answerIndex)}
-                      >
-                        <div className={`absolute top-3 left-3 w-8 h-8 ${answerColors[answerIndex]} rounded-lg flex items-center justify-center text-white font-bold`}>
-                          {answerSymbols[answerIndex]}
-                        </div>
+                <div className="retro-window">
+                  <div className="retro-window-header">
+                    <span>Answer Options - Click to select correct answer</span>
+                  </div>
+                  <div className="p-4 bg-white">
+                    <div className="grid grid-cols-2 gap-3">
+                      {currentQuestion.answers.map((answer, answerIndex) => {
+                        const colors = ['red', 'blue', 'yellow', 'green']
+                        const symbols = ['▲', '♦', '●', '■']
+                        const bgColors = {
+                          red: 'bg-red-500',
+                          blue: 'bg-blue-500', 
+                          yellow: 'bg-yellow-500',
+                          green: 'bg-green-500'
+                        }
                         
-                        <div className="pl-12">
-                          <textarea
-                            value={answer.text}
-                            onChange={(e) => {
-                              e.stopPropagation()
-                              updateAnswer(currentQuestionIndex, answerIndex, e.target.value)
-                            }}
-                            className="w-full bg-transparent border-none resize-none h-12 text-sm font-medium placeholder-gray-400 focus:outline-none"
-                            placeholder={`Answer ${answerIndex + 1}`}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </div>
-
-                        {answer.isCorrect && (
-                          <div className="absolute top-2 right-2">
-                            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                              <span className="text-white text-xs">✓</span>
+                        return (
+                          <div
+                            key={answer.id}
+                            className={`relative border-2 p-3 cursor-pointer transition-all ${
+                              answer.isCorrect 
+                                ? 'border-green-600 bg-green-100' 
+                                : 'border-gray-400 bg-gray-50 hover:bg-gray-100'
+                            }`}
+                            onClick={() => setCorrectAnswer(currentQuestionIndex, answerIndex)}
+                            style={{boxShadow: '1px 1px 2px rgba(0,0,0,0.2)'}}
+                          >
+                            <div className="flex items-start space-x-3">
+                              <div className={`w-8 h-8 ${bgColors[colors[answerIndex] as keyof typeof bgColors]} border border-gray-600 flex items-center justify-center text-white font-bold text-sm`}>
+                                {symbols[answerIndex]}
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-mono text-xs text-gray-600 mb-1">
+                                  OPTION {String.fromCharCode(65 + answerIndex)} {answer.isCorrect ? '(CORRECT)' : ''}
+                                </div>
+                                <textarea
+                                  value={answer.text}
+                                  onChange={(e) => {
+                                    e.stopPropagation()
+                                    updateAnswer(currentQuestionIndex, answerIndex, e.target.value)
+                                  }}
+                                  className="w-full bg-transparent border-none resize-none h-12 text-sm font-medium placeholder-gray-400 focus:outline-none"
+                                  placeholder={`Answer ${answerIndex + 1}`}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </div>
+                              
+                              {answer.isCorrect && (
+                                <div className="absolute top-2 right-2">
+                                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                    <span className="text-white text-xs">✓</span>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
-                        )}
+                        )
+                      })}
+                    </div>
+                    
+                    <div className="mt-4 p-2 bg-gray-100 border border-gray-300">
+                      <div className="font-mono text-xs text-gray-600">
+                        INFO: Click on any answer option to mark it as the correct answer.
                       </div>
-                    ))}
+                    </div>
                   </div>
-
-                  <p className="text-sm text-gray-500 mt-4">
-                    Click on an answer to mark it as correct
-                  </p>
                 </div>
               </div>
             )}

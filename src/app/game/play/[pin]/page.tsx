@@ -2,47 +2,37 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams, useParams } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Crown, Timer, Users, Trophy, Check, X, Zap } from 'lucide-react'
-import { collection, doc, getDoc, getDocs, query, where, onSnapshot, updateDoc, addDoc, serverTimestamp } from 'firebase/firestore'
+import { Crown, Timer, Users, Trophy, Check, X, Zap, Monitor, Settings } from 'lucide-react'
+import { collection, doc, getDoc, getDocs, query, where, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { COLLECTIONS } from '@/types/firebase'
-import Avatar from '@/components/avatar/Avatar'
-import { 
-  AnimatedLeaderboard, 
-  AnswerFeedback, 
-  CountdownReady, 
-  TimesUpScreen, 
-  QuestionHeader, 
-  AnswerStreak 
-} from '@/components/game'
-
-
 
 export default function PlayerGamePage() {
   const searchParams = useSearchParams()
   const params = useParams()
   const gamePin = params.pin as string
   const nickname = searchParams.get('nickname') || 'Player'
-  const gameId = searchParams.get('gameId') || ''
   
-  // Real data state
+  // Core game state (synchronized from host)
   const [quiz, setQuiz] = useState<any>(null)
   const [game, setGame] = useState<any>(null)
   const [playerSession, setPlayerSession] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [timeLeft, setTimeLeft] = useState(30)
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
-  const [gamePhase, setGamePhase] = useState<'countdown' | 'question' | 'answer' | 'results' | 'final' | 'timeup'>('countdown')
-  const [score, setScore] = useState(0)
-  const [questionScore, setQuestionScore] = useState(0)
-  const [rank, setRank] = useState(1)
-  const [totalPlayers, setTotalPlayers] = useState(0)
+  // Player controller state (minimal)
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
   const [answered, setAnswered] = useState(false)
-  const [answerStreak, setAnswerStreak] = useState(0)
-  const [lastAnswerCorrect, setLastAnswerCorrect] = useState<boolean | null>(null)
+  const [lastAnswerFeedback, setLastAnswerFeedback] = useState<'correct' | 'incorrect' | null>(null)
+  const [score, setScore] = useState(0)
+  const [streak, setStreak] = useState(0)
+  const [rank, setRank] = useState(1)
+
+  // Derived state from host-controlled game data
+  const currentQuestion = quiz?.questions?.[game?.current_question_index]
+  const gamePhase = game?.phase || 'waiting'
+  const timeLeft = game?.time_left || 0
+  const totalQuestions = quiz?.questions?.length || 0
+  const currentQuestionIndex = game?.current_question_index || 0
 
   // Fetch initial game and quiz data
   useEffect(() => {
@@ -85,6 +75,8 @@ export default function PlayerGamePage() {
           const sessionData: any = { id: sessionDoc.id, ...sessionDoc.data() }
           setPlayerSession(sessionData)
           setScore(sessionData.score || 0)
+          setStreak(sessionData.streak || 0)
+          setRank(sessionData.rank || 1)
         }
         
       } catch (error) {
@@ -98,7 +90,7 @@ export default function PlayerGamePage() {
     fetchGameData()
   }, [gamePin, nickname])
 
-  // Real-time listener for game state changes
+  // Real-time listener for game state changes (HOST CONTROLS EVERYTHING)
   useEffect(() => {
     if (!game?.id) return
 
@@ -109,24 +101,12 @@ export default function PlayerGamePage() {
     const unsubscribe = onSnapshot(gameRef, (snapshot) => {
       if (snapshot.exists()) {
         const gameData: any = { id: snapshot.id, ...snapshot.data() }
-        console.log('Real-time game state update for player:', gameData)
         
-        // Update game state based on host changes
-        if (gameData.current_question_index !== undefined) {
-          setCurrentQuestionIndex(gameData.current_question_index)
-        }
-        if (gameData.game_phase) {
-          setGamePhase(gameData.game_phase)
-        }
-        if (gameData.time_left !== undefined) {
-          setTimeLeft(gameData.time_left)
-        }
-        
-        // Reset answered state when moving to new question
-        if (gameData.current_question_index !== currentQuestionIndex) {
+        // Reset player state when moving to new question
+        if (gameData.current_question_index !== game?.current_question_index) {
           setAnswered(false)
           setSelectedAnswer(null)
-          setQuestionScore(0)
+          setLastAnswerFeedback(null)
         }
         
         setGame(gameData)
@@ -139,478 +119,401 @@ export default function PlayerGamePage() {
       console.log('Cleaning up game state listener for player')
       unsubscribe()
     }
-  }, [game?.id, currentQuestionIndex])
+  }, [game?.id, game?.current_question_index])
 
-  const currentQuestion = quiz?.questions?.[currentQuestionIndex]
-  const totalQuestions = quiz?.questions?.length || 0
-  const isLastQuestion = currentQuestionIndex === totalQuestions - 1
-
-  // Real-time listener for all game sessions to calculate rank
+  // Listen for player session updates (score, streak, etc.)
   useEffect(() => {
-    if (!game?.id) return
+    if (!playerSession?.id) return
 
-    console.log('Setting up real-time leaderboard listener for player ranking')
+    const sessionRef = doc(db, COLLECTIONS.GAME_SESSIONS, playerSession.id)
     
-    const gameSessionsRef = collection(db, COLLECTIONS.GAME_SESSIONS)
-    const sessionsQuery = query(gameSessionsRef, where('gameId', '==', game.id))
-    
-    const unsubscribe = onSnapshot(sessionsQuery, (snapshot) => {
-      const allPlayers = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as any[]
-      
-      // Sort players by score and find current player's rank
-      const sortedPlayers = allPlayers.sort((a, b) => (b.score || 0) - (a.score || 0))
-      const currentPlayerRank = sortedPlayers.findIndex(p => p.nickname === nickname) + 1
-      
-      setRank(currentPlayerRank > 0 ? currentPlayerRank : 1)
-      setTotalPlayers(allPlayers.length)
-      
-      console.log(`Player ${nickname} rank: ${currentPlayerRank}/${allPlayers.length}`)
-    }, (error) => {
-      console.error('Error listening to leaderboard:', error)
+    const unsubscribe = onSnapshot(sessionRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const sessionData: any = { id: snapshot.id, ...snapshot.data() }
+        setPlayerSession(sessionData)
+        setScore(sessionData.score || 0)
+        setStreak(sessionData.streak || 0)
+        setRank(sessionData.rank || 1)
+        
+        // Show feedback if last answer result is available
+        if (sessionData.lastAnswerCorrect !== undefined) {
+          setLastAnswerFeedback(sessionData.lastAnswerCorrect ? 'correct' : 'incorrect')
+        }
+      }
     })
 
-    return () => {
-      console.log('Cleaning up leaderboard listener for player')
-      unsubscribe()
-    }
-  }, [game?.id, nickname])
+    return () => unsubscribe()
+  }, [playerSession?.id])
 
-  // Timer countdown
-  useEffect(() => {
-    if (gamePhase === 'question' && timeLeft > 0 && !answered) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
-      return () => clearTimeout(timer)
-    } else if (timeLeft === 0 && gamePhase === 'question' && !answered) {
-      // Time's up - set streak to 0 and show time's up screen
-      setAnswerStreak(0)
-      setLastAnswerCorrect(false)
-      setGamePhase('timeup')
-    }
-  }, [timeLeft, gamePhase, answered])
-
-  // Auto-advance through phases
-  useEffect(() => {
-    if (gamePhase === 'countdown') {
-      const timer = setTimeout(() => {
-        setGamePhase('question')
-      }, 3000)
-      return () => clearTimeout(timer)
-    } else if (gamePhase === 'answer' || gamePhase === 'timeup') {
-      const timer = setTimeout(() => {
-        if (isLastQuestion) {
-          setGamePhase('final')
-        } else {
-          setGamePhase('results')
-        }
-      }, 3000)
-      return () => clearTimeout(timer)
-    } else if (gamePhase === 'results') {
-      const timer = setTimeout(() => {
-        setCurrentQuestionIndex(prev => prev + 1)
-        setTimeLeft(quiz?.questions?.[currentQuestionIndex + 1]?.timeLimit || 30)
-        setSelectedAnswer(null)
-        setAnswered(false)
-        setQuestionScore(0)
-        setLastAnswerCorrect(null)
-        setGamePhase('countdown')
-      }, 4000)
-      return () => clearTimeout(timer)
-    }
-  }, [gamePhase, isLastQuestion, currentQuestionIndex, quiz?.questions])
-
-  const handleAnswerSelect = async (answerId: string) => {
-    if (answered || gamePhase !== 'question' || !currentQuestion || !playerSession) return
-    
-    setSelectedAnswer(answerId)
-    setAnswered(true)
+  // Submit answer function (CORE KAHOOT FUNCTIONALITY)
+  const submitAnswer = async (answerIndex: number) => {
+    if (!game?.id || !playerSession?.id || answered) return
     
     try {
-      // Calculate score based on time and correctness
-      const isCorrect = currentQuestion.correctAnswerIds?.includes(answerId) || 
-                       currentQuestion.answers?.find((a: any) => a.id === answerId)?.isCorrect
+      setSelectedAnswer(answerIndex)
+      setAnswered(true)
       
-      // Update streak tracking
-      setLastAnswerCorrect(isCorrect)
-      if (isCorrect) {
-        setAnswerStreak(prev => prev + 1)
-      } else {
-        setAnswerStreak(0)
-      }
-      
-      const timeBonus = Math.floor((timeLeft / currentQuestion.timeLimit) * 500)
-      const streakBonus = answerStreak >= 3 ? 100 * answerStreak : 0
-      const questionPoints = isCorrect ? (currentQuestion.points || 1000) + timeBonus + streakBonus : 0
-      
-      setQuestionScore(questionPoints)
-      const newTotalScore = score + questionPoints
-      setScore(newTotalScore)
-      
-      // Save answer to Firebase
       const sessionRef = doc(db, COLLECTIONS.GAME_SESSIONS, playerSession.id)
-      const answerData = {
-        questionId: currentQuestion.id,
-        answerId: answerId,
-        timeToAnswer: currentQuestion.timeLimit - timeLeft,
-        isCorrect: isCorrect,
-        points: questionPoints,
-        streak: isCorrect ? answerStreak + 1 : 0,
-        timestamp: serverTimestamp()
-      }
       
-      // Update player session with new answer and score
+      // Calculate if answer is correct
+      const currentQuestion = quiz?.questions?.[game.current_question_index]
+      const isCorrect = currentQuestion?.answers?.[answerIndex]?.isCorrect || false
+      
+      // Calculate points based on time left and correctness
+      const basePoints = currentQuestion?.points || 1000
+      const timeBonus = Math.max(0, (game.time_left || 0) / (currentQuestion?.timeLimit || 30))
+      const points = isCorrect ? Math.round(basePoints * (0.5 + 0.5 * timeBonus)) : 0
+      
+      // Update streak
+      const newStreak = isCorrect ? (streak + 1) : 0
+      const newScore = score + points
+      
+      // Update player session
       await updateDoc(sessionRef, {
-        score: newTotalScore,
-        streak: isCorrect ? answerStreak + 1 : 0,
-        [`answers.${currentQuestionIndex}`]: answerData,
+        [`answers.${game.current_question_index}`]: {
+          answerIndex,
+          isCorrect,
+          points,
+          timeLeft: game.time_left || 0,
+          submittedAt: serverTimestamp()
+        },
+        score: newScore,
+        streak: newStreak,
+        lastAnswerCorrect: isCorrect,
         answered: true,
-        isCorrect: isCorrect
+        updated_at: serverTimestamp()
       })
       
-      console.log('Answer submitted:', answerData)
-      setGamePhase('answer')
+      console.log(`Player ${nickname} submitted answer ${answerIndex}, correct: ${isCorrect}, points: ${points}`)
       
     } catch (error) {
       console.error('Error submitting answer:', error)
-      alert('Failed to submit answer. Please try again.')
+      // Reset state on error
       setAnswered(false)
       setSelectedAnswer(null)
     }
   }
 
-  const answerColors = ['answer-red', 'answer-blue', 'answer-yellow', 'answer-green']
-  const answerSymbols = ['▲', '♦', '●', '■']
-
   // Show loading screen while fetching data
   if (loading || !quiz || !game) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-kahoot-purple via-kahoot-blue to-indigo-600 flex items-center justify-center">
-        <div className="text-center text-white">
-          <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-xl">Loading game...</p>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="retro-window w-full max-w-md">
+          <div className="retro-window-header">
+            <span>Loading Game...</span>
+            <div className="retro-window-controls">
+              <div className="retro-window-control minimize">_</div>
+              <div className="retro-window-control maximize">□</div>
+              <div className="retro-window-control close">×</div>
+            </div>
+          </div>
+          <div className="p-6 text-center">
+            <div className="mb-4">
+              <Monitor className="w-12 h-12 mx-auto mb-2 text-gray-600" />
+              <h2 className="font-pixel text-lg mb-4">CONNECTING...</h2>
+            </div>
+            <div className="retro-progress mb-4">
+              <div className="retro-progress-bar" style={{width: '75%'}}></div>
+            </div>
+            <p className="font-mono text-sm text-gray-600">
+              {'>'}  Initializing game session...
+            </p>
+          </div>
         </div>
       </div>
     )
   }
 
-  if (!currentQuestion) {
+  // Waiting for host to start
+  if (gamePhase === 'waiting' || !currentQuestion) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-kahoot-purple via-kahoot-blue to-indigo-600 flex items-center justify-center">
-        <div className="text-center text-white">
-          <h1 className="text-2xl font-bold mb-4">Waiting for questions...</h1>
-          <p className="text-gray-300 mb-6">The host will start the quiz soon.</p>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="retro-window w-full max-w-md">
+          <div className="retro-window-header">
+            <span>Game Status - PIN: {gamePin}</span>
+            <div className="retro-window-controls">
+              <div className="retro-window-control minimize">_</div>
+              <div className="retro-window-control maximize">□</div>
+              <div className="retro-window-control close">×</div>
+            </div>
+          </div>
+          <div className="p-6 text-center">
+            <div className="mb-4">
+              <Timer className="w-12 h-12 mx-auto mb-2 text-blue-600" />
+              <h2 className="font-pixel text-lg mb-4">WAITING...</h2>
+            </div>
+            <div className="bg-yellow-100 border-l-4 border-yellow-600 p-4 mb-4">
+              <p className="font-mono text-sm text-gray-800">
+                {'>'}  Waiting for host to start quiz...
+              </p>
+            </div>
+            <div className="space-y-2 font-mono text-xs text-gray-600">
+              <div>Player: {nickname}</div>
+              <div>Status: Connected</div>
+              <div>Questions: {totalQuestions}</div>
+            </div>
+          </div>
         </div>
       </div>
     )
   }
 
-  if (gamePhase === 'final') {
+  // Game finished - show final results
+  if (gamePhase === 'finished') {
     const correctAnswers = playerSession?.answers ? Object.values(playerSession.answers).filter((answer: any) => answer.isCorrect).length : 0
     const totalAnswered = playerSession?.answers ? Object.keys(playerSession.answers).length : 0
     const accuracy = totalAnswered > 0 ? Math.round((correctAnswers / totalAnswered) * 100) : 0
     
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex items-center justify-center p-4">
-        <div className="text-center text-white max-w-lg">
-          <div className="w-32 h-32 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl">
-            <Trophy className="w-16 h-16 text-yellow-800" />
-          </div>
-          
-          <h1 className="text-4xl font-bold mb-4">Great job, {nickname}!</h1>
-          <p className="text-xl mb-8">You finished the quiz</p>
-          
-          {/* Individual Performance Card */}
-          <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 mb-8">
-            <h2 className="text-2xl font-bold mb-6">Your Performance</h2>
-            
-            {/* Score and Rank */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="text-center">
-                <div className="text-4xl font-bold mb-2 text-yellow-400">{score}</div>
-                <div className="text-sm opacity-90">Total Score</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold mb-2 text-blue-400">#{rank}</div>
-                <div className="text-sm opacity-90">Final Rank</div>
-              </div>
-            </div>
-            
-            {/* Detailed Stats */}
-            <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/30">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-400">{correctAnswers}/{totalAnswered}</div>
-                <div className="text-xs opacity-90">Correct Answers</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-400">{accuracy}%</div>
-                <div className="text-xs opacity-90">Accuracy</div>
-              </div>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="retro-window w-full max-w-2xl">
+          <div className="retro-window-header">
+            <span>Quiz Results - {nickname}</span>
+            <div className="retro-window-controls">
+              <div className="retro-window-control minimize">_</div>
+              <div className="retro-window-control maximize">□</div>
+              <div className="retro-window-control close">×</div>
             </div>
           </div>
-          
-          {/* Question-by-Question Breakdown */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8">
-            <h3 className="text-lg font-bold mb-4">Question Breakdown</h3>
-            <div className="space-y-3 max-h-64 overflow-y-auto">
-              {quiz?.questions?.map((question: any, index: number) => {
-                const playerAnswer = playerSession?.answers?.[index]
-                const isCorrect = playerAnswer?.isCorrect
-                const points = playerAnswer?.points || 0
-                
-                return (
-                  <div key={index} className="flex items-center justify-between p-3 bg-white/10 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                        isCorrect ? 'bg-green-500' : playerAnswer ? 'bg-red-500' : 'bg-gray-500'
-                      }`}>
-                        {isCorrect ? '✓' : playerAnswer ? '✗' : '-'}
-                      </div>
-                      <div className="text-left">
-                        <div className="text-sm font-medium">Question {index + 1}</div>
-                        <div className="text-xs opacity-70">
-                          {playerAnswer ? `${(playerAnswer.timeToAnswer || 0).toFixed(1)}s` : 'No answer'}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-yellow-400 font-bold">{points > 0 ? `+${points}` : '0'}</div>
-                      <div className="text-xs opacity-70">points</div>
-                    </div>
+          <div className="p-6">
+            {/* Header with Trophy */}
+            <div className="text-center mb-6">
+              <div className="w-20 h-20 bg-yellow-400 border-2 border-gray-600 mx-auto mb-4 flex items-center justify-center">
+                <Trophy className="w-12 h-12 text-yellow-800" />
+              </div>
+              <h1 className="font-pixel text-2xl mb-2">QUIZ COMPLETE!</h1>
+              <p className="font-mono text-sm text-gray-600">Player: {nickname}</p>
+            </div>
+            
+            {/* Performance Stats Window */}
+            <div className="retro-window mb-6">
+              <div className="retro-window-header">
+                <span>Performance.exe</span>
+                <div className="retro-window-controls">
+                  <div className="retro-window-control minimize">_</div>
+                </div>
+              </div>
+              <div className="p-4 bg-white">
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="text-center p-3 bg-blue-100 border border-blue-300">
+                    <div className="text-3xl font-pixel text-blue-800 mb-1">{score}</div>
+                    <div className="text-sm font-mono">TOTAL SCORE</div>
                   </div>
-                )
-              })}
+                  <div className="text-center p-3 bg-yellow-100 border border-yellow-300">
+                    <div className="text-3xl font-pixel text-yellow-800 mb-1">#{rank}</div>
+                    <div className="text-sm font-mono">FINAL RANK</div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-2 bg-green-100 border border-green-300">
+                    <div className="text-xl font-pixel text-green-800">{correctAnswers}/{totalAnswered}</div>
+                    <div className="text-xs font-mono">CORRECT</div>
+                  </div>
+                  <div className="text-center p-2 bg-purple-100 border border-purple-300">
+                    <div className="text-xl font-pixel text-purple-800">{accuracy}%</div>
+                    <div className="text-xs font-mono">ACCURACY</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="text-center font-mono text-sm text-gray-600">
+              {'>'}  Thank you for playing! Check the main screen for full results.
             </div>
           </div>
-          
-          {/* Achievement Badges */}
-          <div className="mb-8">
-            <h3 className="text-lg font-bold mb-4">Achievements</h3>
-            <div className="flex justify-center space-x-2 flex-wrap">
-              {accuracy === 100 && totalAnswered > 0 && (
-                <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-full px-3 py-1 text-xs font-bold mb-2">
-                  🎯 Perfect Score!
-                </div>
-              )}
-              {rank === 1 && (
-                <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-full px-3 py-1 text-xs font-bold mb-2">
-                  👑 Champion!
-                </div>
-              )}
-              {rank <= 3 && rank > 1 && (
-                <div className="bg-gray-400/20 border border-gray-400/50 rounded-full px-3 py-1 text-xs font-bold mb-2">
-                  🏆 Top 3!
-                </div>
-              )}
-              {correctAnswers >= totalQuestions * 0.8 && (
-                <div className="bg-green-500/20 border border-green-500/50 rounded-full px-3 py-1 text-xs font-bold mb-2">
-                  📚 Knowledge Master
-                </div>
-              )}
-              {Object.values(playerSession?.answers || {}).some((answer: any) => answer.timeToAnswer < 5) && (
-                <div className="bg-blue-500/20 border border-blue-500/50 rounded-full px-3 py-1 text-xs font-bold mb-2">
-                  ⚡ Speed Demon
-                </div>
-              )}
-            </div>
-          </div>
-          
-          <p className="text-sm opacity-80">
-            Thanks for playing! Your teacher will share the full results.
-          </p>
         </div>
       </div>
     )
   }
 
+  // MAIN KAHOOT PLAYER CONTROLLER - Only colored buttons, never questions!
   return (
-    <div className="min-h-screen bg-gradient-to-br from-kahoot-purple via-kahoot-blue to-indigo-600">
-      {/* Status Bar */}
-      <div className="flex items-center justify-between p-3 bg-black/20 text-white text-sm">
-        <div className="flex items-center space-x-2">
-          <div className="flex items-center space-x-1">
-            <Crown className="w-4 h-4 text-yellow-400" />
-            <span className="font-bold truncate max-w-[80px]">{nickname}</span>
+    <div className="min-h-screen">
+      {/* Retro OS Desktop Taskbar */}
+      <div className="bg-gray-300 border-b-2 border-gray-600 px-2 py-1 flex items-center justify-between text-sm font-mono">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 bg-gray-200 border border-gray-400 px-2 py-1">
+            <Settings className="w-4 h-4" />
+            <span>QuizGame.exe</span>
           </div>
-          <div className="flex items-center space-x-1">
-            <Trophy className="w-3 h-3" />
-            <span className="font-semibold">{score}</span>
-          </div>
+          <div className="text-xs text-gray-600">PIN: {gamePin}</div>
         </div>
         
-        <div className="flex items-center space-x-2">
-          <div className="flex items-center space-x-1">
-            <span className="text-xs">#{rank}</span>
-            <Users className="w-3 h-3" />
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 text-xs">
+            <Crown className="w-3 h-3 text-yellow-600" />
+            <span className="font-bold truncate max-w-[80px]">{nickname}</span>
           </div>
-          <span className="text-xs">PIN: {gamePin}</span>
+          <div className="flex items-center space-x-1 text-xs">
+            <Trophy className="w-3 h-3 text-blue-600" />
+            <span className="font-bold">{score}</span>
+          </div>
+          <div className="flex items-center space-x-1 text-xs">
+            <span>Rank #{rank}</span>
+          </div>
+          <div className="bg-gray-200 border border-gray-400 px-2 py-1 text-xs">
+            12:34 PM
+          </div>
         </div>
       </div>
 
-      {/* Question Header */}
-      <div className="relative z-10">
-        <QuestionHeader 
-          questionNumber={currentQuestionIndex + 1}
-          totalQuestions={totalQuestions}
-          questionType={currentQuestion?.type || 'multiple_choice'}
-          timeLeft={gamePhase === 'question' ? timeLeft : undefined}
-        />
-      </div>
-
-      {gamePhase === 'countdown' && (
-        <CountdownReady
-          questionNumber={currentQuestionIndex + 1}
-          countdown={3}
-          onCountdownComplete={() => setGamePhase('question')}
-        />
-      )}
-
-      {gamePhase === 'question' && (
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-160px)] p-4">
-          {/* Answer Streak Display */}
-          {answerStreak > 0 && (
-            <div className="mb-4">
-              <AnswerStreak streakCount={answerStreak} isActive={false} />
-            </div>
-          )}
-
-          {/* Question Number */}
-          <div className="text-center mb-6">
-            <h2 className="text-white text-lg font-semibold">
-              Question {currentQuestionIndex + 1} of {totalQuestions}
-            </h2>
-            <p className="text-white/80 text-sm mt-1">Look at the screen for the question</p>
-          </div>
-
-          {/* Answer Buttons */}
-          <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
-            {currentQuestion?.answers?.map((answer: any, index: number) => (
-              <button
-                key={answer.id}
-                onClick={() => handleAnswerSelect(answer.id)}
-                disabled={answered}
-                className={`${answerColors[index]} h-20 rounded-xl font-bold text-lg shadow-lg transform transition-all duration-200 ${
-                  !answered ? 'hover:scale-105 active:scale-95' : 'opacity-50'
-                } ${selectedAnswer === answer.id ? 'ring-4 ring-white scale-105' : ''}`}
-              >
-                <div className="flex flex-col items-center justify-center">
-                  <span className="text-2xl mb-1">{answerSymbols[index]}</span>
-                  <span className="text-xs">{answer.text}</span>
+      {/* Main Game Content Area */}
+      <div className="min-h-[calc(100vh-32px)] p-4">
+        
+        {/* Answer Feedback Phase */}
+        {lastAnswerFeedback && (
+          <div className="flex items-center justify-center min-h-full">
+            <div className="retro-window w-full max-w-md">
+              <div className="retro-window-header">
+                <span>Answer Result</span>
+                <div className="retro-window-controls">
+                  <div className="retro-window-control minimize">_</div>
                 </div>
-              </button>
-            ))}
-          </div>
-
-          {answered && (
-            <div className="mt-4 text-center">
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-white">
-                <p className="font-semibold text-sm">Answer submitted!</p>
-                <p className="text-xs opacity-90">Waiting for others to answer...</p>
+              </div>
+              <div className="p-6 text-center bg-white">
+                <div className={`w-16 h-16 mx-auto mb-4 flex items-center justify-center border-2 ${
+                  lastAnswerFeedback === 'correct' 
+                    ? 'bg-green-400 border-green-600' 
+                    : 'bg-red-400 border-red-600'
+                }`}>
+                  {lastAnswerFeedback === 'correct' ? (
+                    <Check className="w-8 h-8 text-white" />
+                  ) : (
+                    <X className="w-8 h-8 text-white" />
+                  )}
+                </div>
+                
+                <h2 className={`font-pixel text-xl mb-4 ${
+                  lastAnswerFeedback === 'correct' ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {lastAnswerFeedback === 'correct' ? 'CORRECT!' : 'INCORRECT!'}
+                </h2>
+                
+                <div className="bg-gray-100 border-2 border-gray-400 p-4 mb-4">
+                  <div className="grid grid-cols-2 gap-4 text-center">
+                    <div>
+                      <div className="text-2xl font-pixel text-blue-600">{score}</div>
+                      <div className="text-xs font-mono">TOTAL SCORE</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-pixel text-yellow-600">#{rank}</div>
+                      <div className="text-xs font-mono">RANK</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {streak > 1 && (
+                  <div className="retro-alert retro-alert-success mb-4">
+                    <div className="flex items-center justify-center space-x-2 font-mono text-sm">
+                      <Zap className="w-4 h-4" />
+                      <span>STREAK: {streak} correct!</span>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="font-mono text-sm text-gray-600">
+                  {'>'}  Waiting for next question...
+                </div>
               </div>
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
 
-      {gamePhase === 'answer' && (
-        <AnswerFeedback
-          isCorrect={lastAnswerCorrect}
-          questionScore={questionScore}
-          totalScore={score}
-          streakCount={answerStreak}
-          onComplete={() => {}}
-        />
-      )}
+        {/* Main Player Controller - KAHOOT COLORED BUTTONS ONLY */}
+        {!lastAnswerFeedback && (
+          <div className="flex items-center justify-center min-h-full">
+            <div className="retro-window w-full max-w-lg">
+              <div className="retro-window-header">
+                <span>Question {currentQuestionIndex + 1}/{totalQuestions} - Time: {timeLeft}s</span>
+                <div className="retro-window-controls">
+                  <div className="retro-window-control minimize">_</div>
+                </div>
+              </div>
+              <div className="p-6 bg-white">
+                {/* Timer Progress Bar */}
+                <div className="retro-progress mb-6">
+                  <div 
+                    className="retro-progress-bar" 
+                    style={{width: `${(timeLeft / (currentQuestion?.timeLimit || 30)) * 100}%`}}
+                  ></div>
+                </div>
+                
+                {/* Answer Streak Display */}
+                {streak > 0 && (
+                  <div className="retro-alert retro-alert-success mb-4">
+                    <div className="flex items-center space-x-2 font-mono text-sm">
+                      <Zap className="w-4 h-4" />
+                      <span>STREAK: {streak} correct!</span>
+                    </div>
+                  </div>
+                )}
 
-      {gamePhase === 'timeup' && (
-        <TimesUpScreen
-          questionNumber={currentQuestionIndex + 1}
-          playerName={nickname}
-          totalScore={score}
-          rank={rank}
-          onComplete={() => {}}
-        />
-      )}
+                {/* Instructions */}
+                <div className="text-center mb-6">
+                  <h2 className="font-pixel text-lg mb-2">CHOOSE YOUR ANSWER</h2>
+                  <p className="font-mono text-sm text-gray-600">
+                    {'>'}  Look at the main screen for the question
+                  </p>
+                </div>
 
-      {gamePhase === 'results' && (
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-72px)] p-4">
-          <div className="text-center text-white max-w-2xl w-full">
-            {/* Personal Result */}
-            <div className="mb-8">
-              <div className="w-24 h-24 bg-gradient-to-br from-kahoot-purple to-kahoot-blue rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
-                {rank === 1 ? (
-                  <Crown className="w-12 h-12 text-yellow-400" />
-                ) : rank <= 3 ? (
-                  <Trophy className="w-12 h-12 text-yellow-400" />
-                ) : (
-                  <Users className="w-12 h-12" />
+                {/* KAHOOT COLORED ANSWER BUTTONS - NEVER SHOW QUESTION TEXT */}
+                <div className="grid grid-cols-2 gap-3">
+                  {[0, 1, 2, 3].map((index) => {
+                    const colors = [
+                      'bg-red-400 hover:bg-red-300 border-red-600', 
+                      'bg-blue-400 hover:bg-blue-300 border-blue-600', 
+                      'bg-yellow-400 hover:bg-yellow-300 border-yellow-600', 
+                      'bg-green-400 hover:bg-green-300 border-green-600'
+                    ]
+                    const symbols = ['▲', '◆', '●', '■']
+                    
+                    // Only show button if answer exists
+                    const answerExists = currentQuestion?.answers?.[index]
+                    if (!answerExists) return null
+                    
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => submitAnswer(index)}
+                        disabled={answered}
+                        className={`h-20 border-2 font-bold text-lg transition-all duration-200 transform ${
+                          !answered ? 'hover:scale-105 active:scale-95' : 'opacity-50'
+                        } ${
+                          selectedAnswer === index ? 'ring-4 ring-white scale-105' : ''
+                        } ${colors[index]}`}
+                        style={{
+                          boxShadow: '2px 2px 4px rgba(0,0,0,0.3)'
+                        }}
+                      >
+                        <div className="flex flex-col items-center justify-center">
+                          <span className="text-3xl mb-1 text-white drop-shadow-sm">{symbols[index]}</span>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {answered && (
+                  <div className="mt-4">
+                    <div className="retro-alert mb-0">
+                      <div className="font-mono text-sm">
+                        <div className="flex items-center space-x-2">
+                          <Check className="w-4 h-4 text-green-600" />
+                          <span>Answer submitted successfully!</span>
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1">
+                          {'>'}  Waiting for other players...
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
-              
-              <h1 className="text-4xl font-bold mb-4 animate-pulse">
-                {rank === 1 ? '👑 You\'re #1!' : 
-                 rank <= 3 ? `🏆 Top ${rank}!` : 
-                 `#${rank} Position`}
-              </h1>
-              
-              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 mb-6">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-yellow-400 animate-score-update">{score}</div>
-                    <div className="text-sm opacity-90">Total Score</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-400">#{rank}</div>
-                    <div className="text-sm opacity-90">Your Rank</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-green-400">{totalPlayers}</div>
-                    <div className="text-sm opacity-90">Total Players</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Personal Results Only - No Leaderboard */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-              <h2 className="text-2xl font-bold mb-6 text-center text-white">
-                Your Results
-              </h2>
-              
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center">
-                <div className="text-3xl font-bold text-yellow-400 animate-pulse mb-2">{score}</div>
-                <div className="text-sm text-white/90 mb-4">Your Total Score</div>
-                
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <div className="text-lg font-bold text-blue-400">#{rank}</div>
-                    <div className="text-white/80">Your Position</div>
-                  </div>
-                  <div>
-                    <div className="text-lg font-bold text-green-400">{totalPlayers}</div>
-                    <div className="text-white/80">Total Players</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="text-center mt-4">
-                <div className="text-white/80 text-sm">
-                  Check the main screen for full leaderboard!
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 p-4 bg-gradient-to-r from-purple-600/20 to-blue-600/20 rounded-xl">
-              <div className="flex items-center justify-center space-x-2 text-yellow-400 animate-pulse">
-                <Zap className="w-4 h-4" />
-                <span className="text-sm font-medium">Next question coming up...</span>
-                <Zap className="w-4 h-4" />
-              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,12 +9,235 @@
     @apply border-gray-200;
   }
   body {
-    @apply bg-white text-gray-900;
+    @apply text-gray-900;
     font-family: 'Montserrat', Arial, sans-serif;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 25%, #FF8C00 50%, #FFB347 75%, #FFD700 100%);
+    background-size: 400% 400%;
+    animation: gradientShift 10s ease infinite;
+    background-attachment: fixed;
+    min-height: 100vh;
+    /* Yellow grid pattern */
+    background-image: 
+      linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  
+  @keyframes gradientShift {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  /* Pixel-perfect scaling */
+  .pixel-perfect {
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+  
+  /* Retro CRT effect */
+  .crt-effect {
+    position: relative;
+  }
+  
+  .crt-effect::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.1) 2px,
+      rgba(0, 0, 0, 0.1) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
   }
 }
 
 @layer components {
+  /* Pixel-art button styles */
+  .btn-pixel {
+    @apply font-pixel text-sm px-6 py-3 border-3 border-black transition-all duration-150 transform hover:scale-105 active:scale-95 uppercase tracking-wider;
+    box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.8);
+  }
+  
+  .btn-pixel:hover {
+    box-shadow: 6px 6px 0px 0px rgba(0,0,0,0.8);
+  }
+  
+  .btn-pixel:active {
+    box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.8);
+    transform: translate(2px, 2px) scale(0.95);
+  }
+  
+  .btn-pixel-yellow {
+    @apply btn-pixel bg-pixel-yellow text-black;
+  }
+  
+  .btn-pixel-purple {
+    @apply btn-pixel bg-pixel-purple text-white;
+  }
+  
+  .btn-pixel-pink {
+    @apply btn-pixel bg-pixel-pink text-white;
+  }
+  
+  .btn-pixel-green {
+    @apply btn-pixel bg-pixel-green text-black;
+  }
+  
+  .btn-pixel-red {
+    @apply btn-pixel bg-pixel-red text-white;
+  }
+  
+  .btn-pixel-cyan {
+    @apply btn-pixel bg-pixel-cyan text-black;
+  }
+  
+  /* Retro OS Window styles */
+  .retro-window {
+    @apply bg-gray-100 border-2 border-gray-400 relative;
+    box-shadow: 
+      inset 1px 1px 0px rgba(255,255,255,0.8),
+      inset -1px -1px 0px rgba(0,0,0,0.3),
+      2px 2px 4px rgba(0,0,0,0.3);
+  }
+  
+  .retro-window-header {
+    @apply bg-gradient-to-r from-blue-600 to-blue-800 text-white px-2 py-1 flex items-center justify-between border-b border-gray-400 font-mono text-sm;
+  }
+  
+  .retro-window-controls {
+    @apply flex space-x-1;
+  }
+  
+  .retro-window-control {
+    @apply w-4 h-4 border border-gray-600 flex items-center justify-center text-xs font-bold cursor-pointer;
+  }
+  
+  .retro-window-control.minimize {
+    @apply bg-yellow-400 hover:bg-yellow-300;
+  }
+  
+  .retro-window-control.maximize {
+    @apply bg-green-400 hover:bg-green-300;
+  }
+  
+  .retro-window-control.close {
+    @apply bg-red-400 hover:bg-red-300;
+  }
+  
+  /* Retro progress bar */
+  .retro-progress {
+    @apply bg-gray-200 border border-gray-400 h-6 relative overflow-hidden;
+    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.3);
+  }
+  
+  .retro-progress-bar {
+    @apply h-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-300;
+    background-image: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 4px,
+      rgba(255,255,255,0.2) 4px,
+      rgba(255,255,255,0.2) 8px
+    );
+  }
+  
+  /* Retro notification/alert box */
+  .retro-alert {
+    @apply bg-yellow-100 border-2 border-yellow-600 p-4 relative;
+    box-shadow: 
+      inset 1px 1px 0px rgba(255,255,255,0.8),
+      inset -1px -1px 0px rgba(0,0,0,0.3),
+      2px 2px 4px rgba(0,0,0,0.3);
+  }
+  
+  .retro-alert-error {
+    @apply bg-red-100 border-red-600;
+  }
+  
+  .retro-alert-success {
+    @apply bg-green-100 border-green-600;
+  }
+  .dialog-box {
+    @apply bg-white border-5 border-black p-6 relative;
+    box-shadow: 8px 8px 0px 0px rgba(0,0,0,0.8);
+  }
+  
+  .dialog-box::before {
+    content: '';
+    position: absolute;
+    top: -15px;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 15px solid black;
+  }
+  
+  .dialog-box::after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 23px;
+    width: 0;
+    height: 0;
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-bottom: 12px solid white;
+  }
+  
+  /* Pixel art card */
+  .pixel-card {
+    @apply bg-white border-5 border-black p-6;
+    box-shadow: 8px 8px 0px 0px rgba(0,0,0,0.8);
+    background-image: 
+      linear-gradient(45deg, #f0f0f0 25%, transparent 25%), 
+      linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), 
+      linear-gradient(45deg, transparent 75%, #f0f0f0 75%), 
+      linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  }
+  
+  /* Character sprite container */
+  .character-sprite {
+    @apply w-16 h-16 pixel-perfect;
+    background-size: cover;
+    image-rendering: pixelated;
+  }
+  
+  /* Retro input style */
+  .input-pixel {
+    @apply bg-white border-3 border-black px-4 py-3 font-mono text-lg focus:outline-none focus:border-pixel-yellow;
+    box-shadow: inset 2px 2px 0px 0px rgba(0,0,0,0.2);
+  }
+  
+  /* Game screen container */
+  .game-screen {
+    @apply bg-pixel-purple border-5 border-black p-8 relative overflow-hidden;
+    box-shadow: inset 0 0 50px rgba(0,0,0,0.3), 8px 8px 0px 0px rgba(0,0,0,0.8);
+    background-image: 
+      radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, rgba(255,255,255,0.05) 0%, transparent 50%);
+  }
+  
+  /* Original button styles for compatibility */
   .btn-primary {
     @apply bg-kahoot-purple hover:bg-kahoot-purple/90 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-kahoot-purple/50;
   }
@@ -44,6 +268,93 @@
 }
 
 @layer utilities {
+  /* Pixel-art specific animations */
+  @keyframes pixelFloat {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  
+  @keyframes pixelGlow {
+    0%, 100% {
+      box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+    }
+    50% {
+      box-shadow: 0 0 20px rgba(255, 215, 0, 1), 0 0 30px rgba(255, 215, 0, 0.8);
+    }
+  }
+  
+  @keyframes retroBlink {
+    0%, 50% {
+      opacity: 1;
+    }
+    51%, 100% {
+      opacity: 0;
+    }
+  }
+  
+  @keyframes pixelSlide {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes characterBob {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    25% {
+      transform: translateY(-2px);
+    }
+    50% {
+      transform: translateY(-4px);
+    }
+    75% {
+      transform: translateY(-2px);
+    }
+  }
+  
+  @keyframes screenFlicker {
+    0%, 100% {
+      opacity: 1;
+    }
+    2% {
+      opacity: 0.8;
+    }
+    4% {
+      opacity: 1;
+    }
+  }
+  
+  .animate-pixel-float {
+    animation: pixelFloat 2s ease-in-out infinite;
+  }
+  
+  .animate-pixel-glow {
+    animation: pixelGlow 2s ease-in-out infinite;
+  }
+  
+  .animate-retro-blink {
+    animation: retroBlink 1s infinite;
+  }
+  
+  .animate-pixel-slide {
+    animation: pixelSlide 0.5s ease-out;
+  }
+  
+  .animate-character-bob {
+    animation: characterBob 1.5s ease-in-out infinite;
+  }
+  
+  .animate-screen-flicker {
+    animation: screenFlicker 0.1s infinite;
+  }
   /* Leaderboard Animations */
   @keyframes slideIn {
     from {

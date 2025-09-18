@@ -2,9 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Navbar } from '@/components/layout/navbar'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Plus, Search, Play, Edit, Trash2, Users, BarChart3, Calendar, Filter, Grid, List, Trophy, Star, Zap, Target, GamepadIcon, Brain, Award, Rocket, Sparkles, Crown } from 'lucide-react'
 import { collection, addDoc, getDocs, query, where, orderBy, Timestamp } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -221,329 +218,226 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar user={mockUser} />
-      
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Library</h1>
-          <p className="text-gray-600">Create, organize, and manage your kahoots</p>
+    <div className="min-h-screen">
+      {/* Retro OS Desktop Taskbar */}
+      <div className="bg-gray-300 border-b-2 border-gray-600 px-2 py-1 flex items-center justify-between text-sm font-mono">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 bg-gray-200 border border-gray-400 px-2 py-1">
+            <BarChart3 className="w-4 h-4" />
+            <span>Dashboard.exe</span>
+          </div>
+          <div className="text-xs text-gray-600">User: {mockUser.username}</div>
         </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-kahoot-purple/10 rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-6 h-6 text-kahoot-purple" />
-              </div>
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900">{quizzes.length}</p>
-                <p className="text-sm text-gray-600">Total Kahoots</p>
-              </div>
-            </div>
+        
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 text-xs">
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+            <span>ONLINE</span>
           </div>
-
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-kahoot-blue/10 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-kahoot-blue" />
-              </div>
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900">
-                  {quizzes.reduce((sum, quiz) => sum + (quiz.questions?.length || 0), 0)}
-                </p>
-                <p className="text-sm text-gray-600">Total Questions</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-kahoot-green/10 rounded-lg flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-kahoot-green" />
-              </div>
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900">{quizzes.filter(quiz => {
-                  const createdAt = quiz.created_at?.toDate ? quiz.created_at.toDate() : new Date(quiz.created_at)
-                  const thisMonth = new Date()
-                  thisMonth.setDate(1)
-                  return createdAt >= thisMonth
-                }).length}</p>
-                <p className="text-sm text-gray-600">This Month</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-kahoot-orange/10 rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-6 h-6 text-kahoot-orange" />
-              </div>
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900">{quizzes.filter(q => q.is_published).length}</p>
-                <p className="text-sm text-gray-600">Published</p>
-              </div>
-            </div>
+          <div className="bg-gray-200 border border-gray-400 px-2 py-1 text-xs">
+            12:34 PM
           </div>
         </div>
+      </div>
 
-        {/* Actions Bar */}
-        <div className="bg-white rounded-lg p-6 shadow-sm mb-8">
-          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-            <div className="flex flex-col sm:flex-row gap-4 flex-1">
-              {/* Search */}
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Search kahoots..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              {/* Category Filter */}
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kahoot-purple focus:border-transparent"
-              >
-                {categories.map(category => (
-                  <option key={category} value={category}>
-                    {category === 'all' ? 'All Categories' : category}
-                  </option>
-                ))}
-              </select>
+      {/* Desktop Area */}
+      <div className="h-[calc(100vh-32px)] flex">
+        {/* Main Dashboard Window */}
+        <div className="flex-1 retro-window m-2">
+          <div className="retro-window-header">
+            <span>My Quiz Library - {quizzes.length} items</span>
+            <div className="retro-window-controls">
+              <div className="retro-window-control minimize">_</div>
+              <div className="retro-window-control maximize">□</div>
             </div>
-
-            <div className="flex items-center gap-4">
-              {/* View Mode Toggle */}
-              <div className="flex items-center bg-gray-100 rounded-lg p-1">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded-md transition-colors ${
-                    viewMode === 'grid' ? 'bg-white shadow-sm' : 'text-gray-500'
-                  }`}
+          </div>
+          
+          <div className="bg-white h-full flex flex-col">
+            {/* Toolbar */}
+            <div className="p-4 border-b-2 border-gray-300 bg-gray-100">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-4">
+                  <div className="relative">
+                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
+                    <input
+                      type="text"
+                      placeholder="Search quizzes..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-7 pr-3 py-1 border border-gray-400 font-mono text-sm focus:outline-none focus:border-blue-500 w-64"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center bg-gray-200 border border-gray-400">
+                    <button
+                      onClick={() => setViewMode('grid')}
+                      className={`p-1 border-r border-gray-400 ${viewMode === 'grid' ? 'bg-blue-200' : 'hover:bg-gray-100'}`}
+                    >
+                      <Grid className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setViewMode('list')}
+                      className={`p-1 ${viewMode === 'list' ? 'bg-blue-200' : 'hover:bg-gray-100'}`}
+                    >
+                      <List className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                
+                <a
+                  href="/create"
+                  className="px-4 py-2 bg-green-400 hover:bg-green-300 border-2 border-gray-600 font-mono font-bold flex items-center"
+                  style={{boxShadow: '2px 2px 4px rgba(0,0,0,0.3)'}}
                 >
-                  <Grid className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`p-2 rounded-md transition-colors ${
-                    viewMode === 'list' ? 'bg-white shadow-sm' : 'text-gray-500'
-                  }`}
-                >
-                  <List className="w-4 h-4" />
-                </button>
+                  <Plus className="w-4 h-4 mr-2" />
+                  NEW QUIZ
+                </a>
               </div>
-
-              {/* Create Button */}
-              <a href="/create" className="btn-primary inline-flex items-center">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Kahoot
-              </a>
-            </div>
-          </div>
-        </div>
-
-        {/* Epic Loading State */}
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-kahoot-purple/30 border-t-kahoot-purple rounded-full animate-spin"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <GamepadIcon className="w-6 h-6 text-kahoot-purple animate-pulse" />
+              
+              {/* Stats */}
+              <div className="grid grid-cols-4 gap-4">
+                <div className="p-2 bg-white border border-gray-400 text-center">
+                  <div className="font-mono text-lg font-bold">{quizzes.length}</div>
+                  <div className="font-mono text-xs text-gray-600">TOTAL</div>
+                </div>
+                <div className="p-2 bg-white border border-gray-400 text-center">
+                  <div className="font-mono text-lg font-bold">
+                    {quizzes.reduce((sum, quiz) => sum + (quiz.questions?.length || 0), 0)}
+                  </div>
+                  <div className="font-mono text-xs text-gray-600">QUESTIONS</div>
+                </div>
+                <div className="p-2 bg-white border border-gray-400 text-center">
+                  <div className="font-mono text-lg font-bold">{quizzes.filter(q => q.is_published).length}</div>
+                  <div className="font-mono text-xs text-gray-600">PUBLISHED</div>
+                </div>
+                <div className="p-2 bg-white border border-gray-400 text-center">
+                  <div className="font-mono text-lg font-bold">{quizzes.filter(quiz => {
+                    const createdAt = quiz.created_at?.toDate ? quiz.created_at.toDate() : new Date(quiz.created_at)
+                    const thisMonth = new Date()
+                    thisMonth.setDate(1)
+                    return createdAt >= thisMonth
+                  }).length}</div>
+                  <div className="font-mono text-xs text-gray-600">THIS MONTH</div>
+                </div>
               </div>
             </div>
-            <div className="mt-6 text-center">
-              <h3 className="text-xl font-black text-kahoot-purple mb-2">Loading Epic Quests...</h3>
-              <p className="text-gray-600 font-medium">🚀 Preparing your learning adventures!</p>
-            </div>
-          </div>
-        ) : (
-          <div className={`${
-            viewMode === 'grid' 
-              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' 
-              : 'space-y-4'
-          }`}>
-            {filteredQuizzes.map((quiz, index) => (
-              <div
-                key={quiz.id}
-                className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow ${
-                  viewMode === 'list' ? 'flex items-center p-4' : 'overflow-hidden'
-                }`}
-              >
-                {viewMode === 'grid' ? (
-                  <>
-                    {/* Quiz Cover */}
-                    <div className="h-32 bg-gradient-to-br from-kahoot-purple to-kahoot-blue flex items-center justify-center">
-                      <span className="text-4xl">{getQuizEmoji(index)}</span>
+
+            {/* Content Area */}
+            <div className="flex-1 p-4 overflow-y-auto">
+              {loading ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="retro-window p-6">
+                    <div className="retro-window-header">
+                      <span>Loading Data</span>
                     </div>
-
-                    {/* Quiz Info */}
-                    <div className="p-4">
-                      <h3 className="font-bold text-gray-900 mb-2 line-clamp-2">{quiz.title}</h3>
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{quiz.description || 'No description'}</p>
-                      
-                      <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                        <span>{quiz.questions?.length || 0} questions</span>
-                        <span>{formatDate(quiz.created_at)}</span>
+                    <div className="p-4 text-center bg-white">
+                      <div className="w-12 h-12 border-4 border-gray-400 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+                      <div className="font-mono text-sm text-gray-700">LOADING QUIZZES...</div>
+                    </div>
+                  </div>
+                </div>
+              ) : filteredQuizzes.length === 0 ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="retro-window p-8">
+                    <div className="retro-window-header">
+                      <span>{searchQuery ? 'Search Results' : 'Getting Started'}</span>
+                    </div>
+                    <div className="p-6 text-center bg-white">
+                      <div className="w-16 h-16 bg-yellow-200 border-2 border-gray-600 flex items-center justify-center mx-auto mb-4 font-mono text-2xl">
+                        {searchQuery ? '?' : '+'}
                       </div>
-
-                      {/* Actions */}
-                      <div className="flex items-center gap-2">
-                        <Button 
-                          size="sm" 
-                          className="flex-1 bg-kahoot-purple hover:bg-kahoot-purple/90 text-white font-semibold"
-                          onClick={() => handlePlayQuiz(quiz.id)}
-                          disabled={isHosting}
+                      <h2 className="font-mono text-lg font-bold text-gray-900 mb-2">
+                        {searchQuery ? 'NO RESULTS FOUND' : 'CREATE YOUR FIRST QUIZ'}
+                      </h2>
+                      <p className="font-mono text-sm text-gray-600 mb-4">
+                        {searchQuery ? 'Try different search terms' : 'Click the NEW QUIZ button to get started'}
+                      </p>
+                      {!searchQuery && (
+                        <a
+                          href="/create"
+                          className="px-6 py-2 bg-green-400 hover:bg-green-300 border-2 border-gray-600 font-mono font-bold"
+                          style={{boxShadow: '2px 2px 4px rgba(0,0,0,0.3)'}}
                         >
-                          {isHosting ? (
-                            <div className="flex items-center">
-                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-1"></div>
-                              Creating...
+                          [+] CREATE QUIZ
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className={viewMode === 'grid' ? 'grid grid-cols-3 gap-4' : 'space-y-2'}>
+                  {filteredQuizzes.map((quiz, index) => (
+                    <div
+                      key={quiz.id}
+                      className={`border-2 border-gray-400 bg-gray-50 hover:bg-gray-100 transition-all ${
+                        viewMode === 'grid' ? 'p-4' : 'p-3 flex items-center space-x-4'
+                      }`}
+                      style={{boxShadow: '1px 1px 2px rgba(0,0,0,0.2)'}}
+                    >
+                      {viewMode === 'grid' ? (
+                        <>
+                          <div className="text-center mb-3">
+                            <div className="w-12 h-12 bg-blue-200 border border-gray-400 flex items-center justify-center mx-auto mb-2 font-mono text-lg">
+                              {getQuizEmoji(index)}
                             </div>
-                          ) : (
-                            <>
-                              <Play className="w-4 h-4 mr-1" />
-                              Start Game
-                            </>
-                          )}
-                        </Button>
-                        <button className="p-2 text-gray-500 hover:text-kahoot-purple">
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button className="p-2 text-gray-500 hover:text-red-500">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {/* List View */}
-                    <div className="w-16 h-16 bg-gradient-to-br from-kahoot-purple to-kahoot-blue rounded-lg flex items-center justify-center mr-4">
-                      <span className="text-2xl">{getQuizEmoji(index)}</span>
-                    </div>
-                    
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-black text-gray-900 text-lg group-hover:text-kahoot-purple transition-colors">{quiz.title}</h3>
-                        <div className="flex items-center gap-1">
-                          <Trophy className="w-4 h-4 text-kahoot-yellow" />
-                          <span className="text-xs font-bold text-kahoot-purple bg-kahoot-yellow/20 px-2 py-1 rounded-full">LV.{index + 1}</span>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-3">{quiz.description || '🎮 Ready for an epic learning adventure!'}</p>
-                      <div className="flex items-center gap-4 text-xs">
-                        <div className="flex items-center gap-1 text-kahoot-blue font-semibold">
-                          <Target className="w-3 h-3" />
-                          <span>{quiz.questions?.length || 0} challenges</span>
-                        </div>
-                        <span className="text-gray-500 font-medium">Created {formatDate(quiz.created_at)}</span>
-                        <span className={`px-3 py-1 rounded-full font-bold text-xs ${
-                          quiz.is_published ? 'bg-gradient-to-r from-green-400 to-green-500 text-white' : 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-700'
-                        }`}>
-                          {quiz.is_published ? '🚀 Live' : '📝 Draft'}
-                        </span>
-                        <div className="flex items-center gap-1">
-                          {[...Array(3)].map((_, i) => (
-                            <Star key={i} className="w-3 h-3 text-kahoot-yellow fill-current" />
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <Button 
-                        size="sm"
-                        className="bg-gradient-to-r from-kahoot-purple to-kahoot-blue hover:from-kahoot-blue hover:to-kahoot-purple text-white font-black py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-                        onClick={() => handlePlayQuiz(quiz.id)}
-                        disabled={isHosting}
-                      >
-                        {isHosting ? (
-                          <div className="flex items-center">
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                            Launching...
+                            <div className="font-mono text-sm font-bold truncate">{quiz.title}</div>
+                            <div className="font-mono text-xs text-gray-600">{quiz.questions?.length || 0} questions</div>
                           </div>
-                        ) : (
-                          <>
-                            <Rocket className="w-4 h-4 mr-2" />
-                            Launch Battle!
-                          </>
-                        )}
-                      </Button>
-                      <button className="p-3 text-gray-500 hover:text-kahoot-purple bg-gray-100 hover:bg-kahoot-purple/10 rounded-xl transition-all duration-200 hover:scale-110">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button className="p-3 text-gray-500 hover:text-red-500 bg-gray-100 hover:bg-red-50 rounded-xl transition-all duration-200 hover:scale-110">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                          
+                          <div className="space-y-2">
+                            <button
+                              onClick={() => handlePlayQuiz(quiz.id)}
+                              disabled={isHosting}
+                              className="w-full px-3 py-2 bg-blue-400 hover:bg-blue-300 border border-gray-600 font-mono text-xs font-bold disabled:opacity-50"
+                            >
+                              {isHosting ? 'STARTING...' : 'START GAME'}
+                            </button>
+                            <div className="flex space-x-1">
+                              <button className="flex-1 px-2 py-1 bg-gray-300 hover:bg-gray-200 border border-gray-500 font-mono text-xs">
+                                EDIT
+                              </button>
+                              <button className="flex-1 px-2 py-1 bg-red-300 hover:bg-red-200 border border-gray-500 font-mono text-xs">
+                                DEL
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-10 h-10 bg-blue-200 border border-gray-400 flex items-center justify-center font-mono text-sm">
+                            {getQuizEmoji(index)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-mono text-sm font-bold truncate">{quiz.title}</div>
+                            <div className="font-mono text-xs text-gray-600">
+                              {quiz.questions?.length || 0} Q • {formatDate(quiz.created_at)} • {quiz.is_published ? 'LIVE' : 'DRAFT'}
+                            </div>
+                          </div>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handlePlayQuiz(quiz.id)}
+                              disabled={isHosting}
+                              className="px-3 py-1 bg-blue-400 hover:bg-blue-300 border border-gray-600 font-mono text-xs font-bold disabled:opacity-50"
+                            >
+                              {isHosting ? 'STARTING...' : 'START'}
+                            </button>
+                            <button className="px-2 py-1 bg-gray-300 hover:bg-gray-200 border border-gray-500 font-mono text-xs">
+                              EDIT
+                            </button>
+                            <button className="px-2 py-1 bg-red-300 hover:bg-red-200 border border-gray-500 font-mono text-xs">
+                              DEL
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Epic Empty State */}
-        {!loading && filteredQuizzes.length === 0 && (
-          <div className="text-center py-16">
-            <div className="relative mx-auto mb-8">
-              <div className="w-32 h-32 bg-gradient-to-br from-kahoot-purple via-kahoot-blue to-kahoot-pink rounded-full flex items-center justify-center mx-auto relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"></div>
-                <div className="relative z-10">
-                  {searchQuery ? (
-                    <Search className="w-16 h-16 text-white" />
-                  ) : quizzes.length === 0 ? (
-                    <Rocket className="w-16 h-16 text-white animate-bounce-slow" />
-                  ) : (
-                    <Target className="w-16 h-16 text-white" />
-                  )}
+                  ))}
                 </div>
-                <div className="absolute -top-2 -right-2">
-                  <Sparkles className="w-8 h-8 text-kahoot-yellow animate-pulse" />
-                </div>
-              </div>
-              <div className="flex justify-center gap-2 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="w-3 h-3 bg-kahoot-purple/30 rounded-full animate-pulse"
-                    style={{animationDelay: `${i * 0.2}s`}}
-                  ></div>
-                ))}
-              </div>
+              )}
             </div>
-            <h3 className="text-3xl font-black bg-gradient-to-r from-kahoot-purple to-kahoot-blue bg-clip-text text-transparent mb-4">
-              {searchQuery 
-                ? '🔍 No Quests Found!' 
-                : quizzes.length === 0 
-                  ? '🎮 Ready to Start Your Adventure?' 
-                  : '🎯 No Matching Quests'
-              }
-            </h3>
-            <p className="text-gray-600 mb-8 text-lg font-medium max-w-md mx-auto">
-              {searchQuery 
-                ? 'Try different keywords to discover epic learning quests! 💫' 
-                : quizzes.length === 0 
-                  ? 'Create your first epic learning quest and start your journey to knowledge mastery! 🚀'
-                  : 'Adjust your filters to find the perfect learning adventure! ✨'
-              }
-            </p>
-            <a href="/create" className="bg-gradient-to-r from-kahoot-purple via-kahoot-blue to-kahoot-pink hover:from-kahoot-pink hover:via-kahoot-purple hover:to-kahoot-blue text-white font-black py-4 px-8 rounded-2xl transition-all duration-500 transform hover:scale-110 hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-kahoot-purple/50 inline-flex items-center group">
-              <div className="w-8 h-8 bg-white/30 rounded-full flex items-center justify-center mr-3 group-hover:rotate-180 transition-transform duration-500">
-                <Plus className="w-5 h-5" />
-              </div>
-              {quizzes.length === 0 ? 'Create Your First Epic Quest! 🎆' : 'Create New Adventure! ✨'}
-              <Rocket className="w-5 h-5 ml-3 group-hover:translate-x-2 transition-transform duration-300" />
-            </a>
           </div>
-        )}
-      </main>
+        </div>
+      </div>
     </div>
   )
 }
