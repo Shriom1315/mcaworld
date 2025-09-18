@@ -2,16 +2,22 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams, useParams } from 'next/navigation'
-import { Crown, Timer, Users, Trophy, Check, X, Zap, Monitor, Settings } from 'lucide-react'
+import { Crown, Timer, Users, Trophy, Check, X, Zap, Monitor, Settings, Wifi, WifiOff } from 'lucide-react'
 import { collection, doc, getDoc, getDocs, query, where, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { COLLECTIONS } from '@/types/firebase'
+import GameStateManager, { GameState, GamePhase } from '@/lib/gameStateManager'
 
 export default function PlayerGamePage() {
   const searchParams = useSearchParams()
   const params = useParams()
   const gamePin = params.pin as string
   const nickname = searchParams.get('nickname') || 'Player'
+  
+  // Game state management with synchronized timers
+  const [gameStateManager, setGameStateManager] = useState<GameStateManager | null>(null)
+  const [gameState, setGameState] = useState<GameState | null>(null)
+  const [syncStatus, setSyncStatus] = useState<'connected' | 'disconnected'>('disconnected')
   
   // Core game state (synchronized from host)
   const [quiz, setQuiz] = useState<any>(null)
@@ -27,14 +33,14 @@ export default function PlayerGamePage() {
   const [streak, setStreak] = useState(0)
   const [rank, setRank] = useState(1)
 
-  // Derived state from host-controlled game data
-  const currentQuestion = quiz?.questions?.[game?.current_question_index]
-  const gamePhase = game?.phase || 'waiting'
-  const timeLeft = game?.time_left || 0
+  // Derived state from synchronized game state
+  const currentQuestion = quiz?.questions?.[gameState?.currentQuestionIndex ?? game?.current_question_index]
+  const gamePhase = gameState?.phase || game?.phase || 'waiting'
+  const timeLeft = gameState?.timeRemaining ?? game?.time_left ?? 0
   const totalQuestions = quiz?.questions?.length || 0
-  const currentQuestionIndex = game?.current_question_index || 0
+  const currentQuestionIndex = gameState?.currentQuestionIndex ?? game?.current_question_index ?? 0
 
-  // Fetch initial game and quiz data
+  // Fetch initial game and quiz data + Initialize GameStateManager
   useEffect(() => {
     const fetchGameData = async () => {
       try {
@@ -52,6 +58,24 @@ export default function PlayerGamePage() {
         const gameDoc = gameSnapshot.docs[0]
         const gameData = { id: gameDoc.id, ...gameDoc.data() } as any
         setGame(gameData)
+        
+        // Initialize GameStateManager for synchronized timers
+        const stateManager = new GameStateManager(gamePin)
+        setGameStateManager(stateManager)
+        
+        // Subscribe to real-time synchronized game state
+        stateManager.subscribeToGameState((state: GameState) => {
+          console.log('🎮 PLAYER: Synchronized game state update:', state)
+          setGameState(state)
+          setSyncStatus('connected')
+          
+          // Reset player state when moving to new question
+          if (state.currentQuestionIndex !== currentQuestionIndex) {
+            setAnswered(false)
+            setSelectedAnswer(null)
+            setLastAnswerFeedback(null)
+          }
+        })
         
         // Fetch quiz data
         const quizRef = doc(db, COLLECTIONS.QUIZZES, gameData.quiz_id)
@@ -80,7 +104,8 @@ export default function PlayerGamePage() {
         }
         
       } catch (error) {
-        console.error('Error fetching game data:', error)
+        console.error('❌ PLAYER: Error fetching game data:', error)
+        setSyncStatus('disconnected')
         alert('Error loading game')
       } finally {
         setLoading(false)
@@ -88,6 +113,13 @@ export default function PlayerGamePage() {
     }
 
     fetchGameData()
+    
+    // Cleanup GameStateManager on unmount
+    return () => {
+      if (gameStateManager) {
+        gameStateManager.cleanup()
+      }
+    }
   }, [gamePin, nickname])
 
   // Real-time listener for game state changes (HOST CONTROLS EVERYTHING)
@@ -145,50 +177,44 @@ export default function PlayerGamePage() {
     return () => unsubscribe()
   }, [playerSession?.id])
 
-  // Submit answer function (CORE KAHOOT FUNCTIONALITY)
+  // Submit answer function with GameStateManager for accurate timing
   const submitAnswer = async (answerIndex: number) => {
-    if (!game?.id || !playerSession?.id || answered) return
+    if (!gameStateManager || !playerSession?.id || answered || gamePhase !== 'question') {
+      console.log('🎮 PLAYER: Cannot submit answer - invalid conditions')
+      return
+    }
     
     try {
+      console.log(`🎮 PLAYER: Submitting synchronized answer ${answerIndex} for ${nickname}`)
+      
       setSelectedAnswer(answerIndex)
       setAnswered(true)
       
-      const sessionRef = doc(db, COLLECTIONS.GAME_SESSIONS, playerSession.id)
+      // Submit through GameStateManager for accurate response timing
+      await gameStateManager.submitAnswer(
+        playerSession.id,
+        nickname, 
+        answerIndex
+      )
       
-      // Calculate if answer is correct
-      const currentQuestion = quiz?.questions?.[game.current_question_index]
+      console.log('✅ PLAYER: Answer submitted with synchronized timing')
+      
+      // Update local session optimistically for immediate feedback
+      const currentQuestion = quiz?.questions?.[currentQuestionIndex]
       const isCorrect = currentQuestion?.answers?.[answerIndex]?.isCorrect || false
-      
-      // Calculate points based on time left and correctness
       const basePoints = currentQuestion?.points || 1000
-      const timeBonus = Math.max(0, (game.time_left || 0) / (currentQuestion?.timeLimit || 30))
+      const timeBonus = Math.max(0, timeLeft / (currentQuestion?.timeLimit || 30))
       const points = isCorrect ? Math.round(basePoints * (0.5 + 0.5 * timeBonus)) : 0
-      
-      // Update streak
       const newStreak = isCorrect ? (streak + 1) : 0
       const newScore = score + points
       
-      // Update player session
-      await updateDoc(sessionRef, {
-        [`answers.${game.current_question_index}`]: {
-          answerIndex,
-          isCorrect,
-          points,
-          timeLeft: game.time_left || 0,
-          submittedAt: serverTimestamp()
-        },
-        score: newScore,
-        streak: newStreak,
-        lastAnswerCorrect: isCorrect,
-        answered: true,
-        updated_at: serverTimestamp()
-      })
-      
-      console.log(`Player ${nickname} submitted answer ${answerIndex}, correct: ${isCorrect}, points: ${points}`)
+      // Update local state immediately for better UX
+      setScore(newScore)
+      setStreak(newStreak)
       
     } catch (error) {
-      console.error('Error submitting answer:', error)
-      // Reset state on error
+      console.error('❌ PLAYER: Error submitting answer:', error)
+      // Reset state on error to allow retry
       setAnswered(false)
       setSelectedAnswer(null)
     }
@@ -337,7 +363,23 @@ export default function PlayerGamePage() {
             <Settings className="w-4 h-4" />
             <span>QuizGame.exe</span>
           </div>
-          <div className="text-xs text-gray-600">PIN: {gamePin}</div>
+          <div className="flex items-center space-x-4 text-xs">
+            {/* Real-time sync status */}
+            <div className="flex items-center space-x-1">
+              {syncStatus === 'connected' ? (
+                <>
+                  <Wifi className="w-3 h-3 text-green-600" />
+                  <span className="text-green-600">SYNC</span>
+                </>
+              ) : (
+                <>
+                  <WifiOff className="w-3 h-3 text-red-600" />
+                  <span className="text-red-600">OFFLINE</span>
+                </>
+              )}
+            </div>
+            <div className="text-xs text-gray-600">PIN: {gamePin}</div>
+          </div>
         </div>
         
         <div className="flex items-center space-x-4">
@@ -425,18 +467,23 @@ export default function PlayerGamePage() {
           <div className="flex items-center justify-center min-h-full">
             <div className="retro-window w-full max-w-lg">
               <div className="retro-window-header">
-                <span>Question {currentQuestionIndex + 1}/{totalQuestions} - Time: {timeLeft}s</span>
+                <span>Question {currentQuestionIndex + 1}/{totalQuestions} - Time: {timeLeft}s {gameState?.isActive ? '🔴 LIVE' : '⏸️ PAUSED'}</span>
                 <div className="retro-window-controls">
                   <div className="retro-window-control minimize">_</div>
                 </div>
               </div>
               <div className="p-6 bg-white">
-                {/* Timer Progress Bar */}
+                {/* Synchronized Timer Progress Bar */}
                 <div className="retro-progress mb-6">
                   <div 
-                    className="retro-progress-bar" 
+                    className={`retro-progress-bar transition-all duration-1000 ${
+                      timeLeft <= 5 ? 'bg-red-500' : timeLeft <= 10 ? 'bg-yellow-500' : 'bg-blue-500'
+                    }`}
                     style={{width: `${(timeLeft / (currentQuestion?.timeLimit || 30)) * 100}%`}}
                   ></div>
+                  <div className="text-xs text-center mt-1 font-mono text-gray-600">
+                    {gameState?.isActive ? '🔴 Synchronized Timer' : '⏸️ Timer Paused'}
+                  </div>
                 </div>
                 
                 {/* Answer Streak Display */}

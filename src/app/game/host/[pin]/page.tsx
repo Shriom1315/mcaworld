@@ -12,6 +12,7 @@ import RealTimeCounter from '@/components/game/RealTimeCounter'
 import AnimatedLeaderboard from '@/components/game/AnimatedLeaderboard'
 import { LeaderboardReveal } from '@/components/game'
 import PlayerStatus from '@/components/game/PlayerStatus'
+import GameStateManager, { GameState, GamePhase } from '@/lib/gameStateManager'
 
 
 
@@ -47,14 +48,19 @@ export default function HostGamePage() {
   const [loading, setLoading] = useState(true)
   const [realPlayers, setRealPlayers] = useState<any[]>([])
   
+  // Game state management
+  const [gameStateManager, setGameStateManager] = useState<GameStateManager | null>(null)
+  const [gameState, setGameState] = useState<GameState | null>(null)
+  
+  // Legacy state for backward compatibility
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [timeLeft, setTimeLeft] = useState(30)
-  const [gamePhase, setGamePhase] = useState<'waiting' | 'question' | 'results' | 'final'>('waiting')
+  const [gamePhase, setGamePhase] = useState<GamePhase>('waiting')
   const [isPlaying, setIsPlaying] = useState(false)
   // Remove mock players - only use real players
   // const [players, setPlayers] = useState(mockPlayers)
 
-  // Fetch game and quiz data
+  // Initialize GameStateManager and fetch game data
   useEffect(() => {
     const fetchGameData = async () => {
       try {
@@ -72,6 +78,20 @@ export default function HostGamePage() {
         const gameDoc = gameSnapshot.docs[0]
         const gameData = { id: gameDoc.id, ...gameDoc.data() } as any
         setGame(gameData)
+        
+        // Initialize GameStateManager
+        const stateManager = new GameStateManager(gamePin)
+        setGameStateManager(stateManager)
+        
+        // Subscribe to game state changes
+        stateManager.subscribeToGameState((state: GameState) => {
+          console.log('🎮 HOST: Game state updated:', state)
+          setGameState(state)
+          setCurrentQuestionIndex(state.currentQuestionIndex)
+          setTimeLeft(state.timeRemaining)
+          setGamePhase(state.phase)
+          setIsPlaying(state.isActive && state.phase === 'question')
+        })
         
         // Fetch quiz data
         const quizRef = doc(db, COLLECTIONS.QUIZZES, gameData.quiz_id)
@@ -93,6 +113,13 @@ export default function HostGamePage() {
     }
 
     fetchGameData()
+    
+    // Cleanup on unmount
+    return () => {
+      if (gameStateManager) {
+        gameStateManager.cleanup()
+      }
+    }
   }, [gamePin])
 
   // Real-time listener for game sessions (players)
@@ -169,16 +196,8 @@ export default function HostGamePage() {
   const playersAnswered = displayPlayers.filter((p: any) => p.answered).length
   const correctAnswers = displayPlayers.filter((p: any) => p.isCorrect).length
 
-  // Timer countdown
-  useEffect(() => {
-    if (gamePhase === 'question' && isPlaying && timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
-      return () => clearTimeout(timer)
-    } else if (timeLeft === 0 && gamePhase === 'question') {
-      setGamePhase('results')
-      setIsPlaying(false)
-    }
-  }, [timeLeft, gamePhase, isPlaying])
+  // Timer is now handled by GameStateManager - no local countdown needed
+  // The GameStateManager provides real-time synchronized timer updates
 
   // Show loading screen while fetching data
   if (loading) {
@@ -207,27 +226,24 @@ export default function HostGamePage() {
   }
 
   const startGame = async () => {
-    if (!game?.id) return
+    if (!gameStateManager || !currentQuestion) return
     
     try {
-      // Update game status to 'active' and set current question
-      const gameRef = doc(db, COLLECTIONS.GAMES, game.id)
-      await updateDoc(gameRef, {
-        status: 'active',
-        current_question_index: 0,
-        started_at: serverTimestamp(),
-        game_phase: 'question',
-        time_left: currentQuestion?.timeLimit || 30
-      })
+      console.log('🎮 HOST: Starting game with synchronized timer')
+      await gameStateManager.startQuestion(0, currentQuestion?.timeLimit || 30)
       
-      setGamePhase('question')
-      setIsPlaying(true)
-      setTimeLeft(currentQuestion?.timeLimit || 30)
-      setCurrentQuestionIndex(0)
+      // Update game status in Firebase for other components
+      if (game?.id) {
+        const gameRef = doc(db, COLLECTIONS.GAMES, game.id)
+        await updateDoc(gameRef, {
+          status: 'active',
+          started_at: serverTimestamp()
+        })
+      }
       
-      console.log('Game started - all players will see this question')
+      console.log('✅ HOST: Game started with centralized timer control')
     } catch (error) {
-      console.error('Error starting game:', error)
+      console.error('❌ HOST: Error starting game:', error)
       alert('Failed to start game. Please try again.')
     }
   }
@@ -237,41 +253,34 @@ export default function HostGamePage() {
   }
 
   const nextQuestion = async () => {
-    if (!game?.id) return
+    if (!gameStateManager) return
     
     try {
       if (currentQuestionIndex < totalQuestions - 1) {
         const nextIndex = currentQuestionIndex + 1
         const nextQ = quiz?.questions?.[nextIndex] || mockQuiz.questions[nextIndex]
         
-        // Update game state in Firebase
-        const gameRef = doc(db, COLLECTIONS.GAMES, game.id)
-        await updateDoc(gameRef, {
-          current_question_index: nextIndex,
-          game_phase: 'question',
-          time_left: nextQ?.timeLimit || 30
-        })
+        console.log(`🎮 HOST: Moving to question ${nextIndex + 1} with synchronized timer`)
+        await gameStateManager.startQuestion(nextIndex, nextQ?.timeLimit || 30)
         
-        setCurrentQuestionIndex(nextIndex)
-        setTimeLeft(nextQ?.timeLimit || 30)
-        setGamePhase('question')
-        setIsPlaying(true)
-        
-        console.log(`Moving to question ${nextIndex + 1} - all players will see this`)
+        console.log(`✅ HOST: Question ${nextIndex + 1} started - all clients synchronized`)
       } else {
-        // Game finished
-        const gameRef = doc(db, COLLECTIONS.GAMES, game.id)
-        await updateDoc(gameRef, {
-          status: 'finished',
-          game_phase: 'final',
-          ended_at: serverTimestamp()
-        })
+        console.log('🎮 HOST: Game finished - moving to final results')
+        await gameStateManager.nextQuestion() // This will set phase to 'final'
         
-        setGamePhase('final')
-        console.log('Game finished - showing final results')
+        // Update game status in Firebase
+        if (game?.id) {
+          const gameRef = doc(db, COLLECTIONS.GAMES, game.id)
+          await updateDoc(gameRef, {
+            status: 'finished',
+            ended_at: serverTimestamp()
+          })
+        }
+        
+        console.log('✅ HOST: Final results displayed')
       }
     } catch (error) {
-      console.error('Error moving to next question:', error)
+      console.error('❌ HOST: Error moving to next question:', error)
       alert('Failed to move to next question. Please try again.')
     }
   }
@@ -315,9 +324,17 @@ Game Settings:
     alert(settingsInfo)
   }
 
-  const showResults = () => {
-    setGamePhase('results')
-    setIsPlaying(false)
+  const showResults = async () => {
+    if (!gameStateManager) return
+    
+    try {
+      console.log('🎮 HOST: Ending current question and showing results')
+      await gameStateManager.endQuestion()
+      console.log('✅ HOST: Results displayed - timer stopped')
+    } catch (error) {
+      console.error('❌ HOST: Error showing results:', error)
+      alert('Failed to show results. Please try again.')
+    }
   }
 
   const answerColors = ['bg-kahoot-red', 'bg-kahoot-blue', 'bg-kahoot-yellow', 'bg-kahoot-green']
@@ -508,6 +525,10 @@ Game Settings:
                     timeLeft <= 5 ? 'bg-red-500 animate-pulse' : timeLeft <= 10 ? 'bg-yellow-500' : 'bg-green-500'
                   }`}>
                     {timeLeft}
+                  </div>
+                  {/* Real-time synchronized timer */}
+                  <div className="text-sm text-gray-400 mt-1">
+                    {gameState?.isActive ? '🔴 LIVE SYNC' : '⏸️ PAUSED'}
                   </div>
                   <span className="text-xl text-gray-300">
                     Question {currentQuestionIndex + 1} of {totalQuestions}
